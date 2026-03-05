@@ -19,7 +19,8 @@ import {
 } from '@/lib/geometry'
 import { nanoid } from '@/lib/nanoid'
 
-pdfjs.GlobalWorkerOptions.workerSrc = '/pdf.worker.min.mjs'
+// Chemin relatif : fonctionne en web (http://) ET en Electron (file://)
+pdfjs.GlobalWorkerOptions.workerSrc = new URL('./pdf.worker.min.mjs', window.location.href).href
 
 const CanvasArea: React.FC = () => {
   const containerRef = useRef<HTMLDivElement>(null)

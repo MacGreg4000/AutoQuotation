@@ -5,6 +5,8 @@ import { viteStaticCopy } from 'vite-plugin-static-copy'
 import path from 'path'
 
 export default defineConfig({
+  // './' = chemins relatifs : compatible navigateur (http) ET Electron (file://)
+  base: './',
   plugins: [
     react(),
     tailwindcss(),
