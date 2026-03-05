@@ -71,12 +71,6 @@
           "arch": [
             "arm64"
           ]
-        },
-        {
-          "target": "dmg",
-          "arch": [
-            "x64"
-          ]
         }
       ],
       "category": "public.app-category.productivity",
