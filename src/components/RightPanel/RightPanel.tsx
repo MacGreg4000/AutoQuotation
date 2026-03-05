@@ -1,4 +1,4 @@
-import React, { useMemo, useState, useRef, useEffect } from 'react'
+import React, { useMemo, useState, useRef, useEffect, useCallback } from 'react'
 import { useProjectStore, nextPosteColor } from '@/store/useProjectStore'
 import { usePdfStore } from '@/store/usePdfStore'
 import type { Measurement, MeasurementType, Poste } from '@/types'
@@ -360,14 +360,73 @@ const PosteRow: React.FC<{
 
 // ─── Main panel ──────────────────────────────────────────────────────────────
 
+const MIN_WIDTH = 200
+const MAX_WIDTH = 700
+const DEFAULT_WIDTH = 288
+
 const RightPanel: React.FC = () => {
   const [tab, setTab] = useState<'mesures' | 'metre'>('mesures')
   const { postes, activePosteId } = useProjectStore()
 
+  // ── Resize logic ────────────────────────────────────────────────────────────
+  const [panelWidth, setPanelWidth] = useState(DEFAULT_WIDTH)
+  const isResizing = useRef(false)
+  const startX = useRef(0)
+  const startWidth = useRef(0)
+
+  const onResizeStart = useCallback((e: React.MouseEvent) => {
+    e.preventDefault()
+    isResizing.current = true
+    startX.current = e.clientX
+    startWidth.current = panelWidth
+    document.body.style.cursor = 'col-resize'
+    document.body.style.userSelect = 'none'
+  }, [panelWidth])
+
+  useEffect(() => {
+    const onMouseMove = (e: MouseEvent) => {
+      if (!isResizing.current) return
+      const delta = startX.current - e.clientX   // dragging left → wider
+      const newWidth = Math.min(Math.max(startWidth.current + delta, MIN_WIDTH), MAX_WIDTH)
+      setPanelWidth(newWidth)
+    }
+    const onMouseUp = () => {
+      if (!isResizing.current) return
+      isResizing.current = false
+      document.body.style.cursor = ''
+      document.body.style.userSelect = ''
+    }
+    window.addEventListener('mousemove', onMouseMove)
+    window.addEventListener('mouseup', onMouseUp)
+    return () => {
+      window.removeEventListener('mousemove', onMouseMove)
+      window.removeEventListener('mouseup', onMouseUp)
+    }
+  }, [])
+
   return (
-    <div className="w-72 bg-gray-900 border-l border-gray-800 flex flex-col shrink-0 overflow-hidden">
-      {/* Tab bar */}
-      <div className="flex border-b border-gray-800 shrink-0">
+    <div
+      className="relative bg-gray-900 border-l border-gray-800 flex flex-col shrink-0 overflow-hidden"
+      style={{ width: panelWidth }}
+    >
+      {/* ── Resize handle (left edge) ────────────────────────────────────────── */}
+      <div
+        className="absolute left-0 top-0 bottom-0 w-2 z-10 cursor-col-resize group flex items-center justify-center"
+        onMouseDown={onResizeStart}
+        title="Glisser pour redimensionner"
+      >
+        {/* thin visual line */}
+        <div className="w-px h-full bg-gray-800 group-hover:bg-blue-500/60 transition-colors" />
+        {/* center grip dots */}
+        <div className="absolute top-1/2 -translate-y-1/2 flex flex-col gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+          <div className="w-1 h-1 rounded-full bg-blue-400" />
+          <div className="w-1 h-1 rounded-full bg-blue-400" />
+          <div className="w-1 h-1 rounded-full bg-blue-400" />
+        </div>
+      </div>
+
+      {/* ── Tab bar ─────────────────────────────────────────────────────────── */}
+      <div className="flex border-b border-gray-800 shrink-0 pl-2">
         <button
           onClick={() => setTab('mesures')}
           className={clsx(
