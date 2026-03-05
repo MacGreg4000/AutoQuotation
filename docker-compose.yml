@@ -1,0 +1,15 @@
+services:
+  metreplan:
+    image: nginx:alpine
+    container_name: metreplan
+    ports:
+      - "8085:80"
+    volumes:
+      - ./dist:/usr/share/nginx/html:ro
+      - ./nginx.conf:/etc/nginx/conf.d/default.conf:ro
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost/"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
