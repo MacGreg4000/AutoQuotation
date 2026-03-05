@@ -1,0 +1,217 @@
+import React, { useState } from 'react'
+import { useToolStore } from '@/store/useToolStore'
+import { useProjectStore } from '@/store/useProjectStore'
+import { MEASUREMENT_COLORS } from '@/types'
+import type { ToolType, Unit } from '@/types'
+import { MousePointer2, Hand, Crosshair, Ruler, Square, Hash, Home, Target, X } from 'lucide-react'
+import clsx from 'clsx'
+
+const TOOLS: { type: ToolType; icon: React.ReactNode; label: string; shortcut: string; color: string }[] = [
+  { type: 'select', icon: <MousePointer2 size={18} />, label: 'Sélection', shortcut: 'S', color: 'text-gray-400' },
+  { type: 'pan', icon: <Hand size={18} />, label: 'Navigation', shortcut: 'Espace', color: 'text-gray-400' },
+  { type: 'calibrate', icon: <Crosshair size={18} />, label: 'Calibration', shortcut: 'C', color: 'text-red-400' },
+  { type: 'length', icon: <Ruler size={18} />, label: 'Longueur', shortcut: '1', color: 'text-blue-400' },
+  { type: 'area', icon: <Square size={18} />, label: 'Surface', shortcut: '2', color: 'text-green-400' },
+  { type: 'count', icon: <Hash size={18} />, label: 'Compteur', shortcut: '3', color: 'text-yellow-400' },
+  { type: 'roof', icon: <Home size={18} />, label: 'Toiture', shortcut: '4', color: 'text-orange-400' },
+]
+
+const Toolbar: React.FC = () => {
+  const { activeTool, setActiveTool, activeColor, setActiveColor, activeUnit, setActiveUnit,
+    counterName, setCounterName, counterColor, setCounterColor,
+    slopeFormat, setSlopeFormat, slopeValue, setSlopeValue } = useToolStore()
+  const { calibration, postes, activePosteId, setActivePosteId } = useProjectStore()
+  const activePoste = postes.find(p => p.id === activePosteId)
+  const [showSlopeAdvanced, setShowSlopeAdvanced] = useState(false)
+
+  return (
+    <div className="w-[220px] bg-gray-900 border-r border-gray-800 flex flex-col shrink-0 overflow-y-auto">
+      {/* Tool buttons */}
+      <div className="p-2 flex flex-col gap-1">
+        <p className="text-xs text-gray-500 font-medium uppercase tracking-wider px-2 py-1">Outils</p>
+        {TOOLS.map(t => (
+          <button
+            key={t.type}
+            onClick={() => setActiveTool(t.type)}
+            className={clsx(
+              'flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-all',
+              activeTool === t.type
+                ? 'bg-blue-600 text-white'
+                : 'text-gray-300 hover:bg-gray-800 hover:text-white'
+            )}
+            title={`${t.label} (${t.shortcut})`}
+          >
+            <span className={activeTool === t.type ? 'text-white' : t.color}>{t.icon}</span>
+            <span className="flex-1 text-left">{t.label}</span>
+            <span className={clsx('text-xs rounded px-1', activeTool === t.type ? 'bg-blue-500 text-blue-100' : 'bg-gray-800 text-gray-500')}>
+              {t.shortcut}
+            </span>
+          </button>
+        ))}
+      </div>
+
+      <div className="h-px bg-gray-800 mx-2" />
+
+      {/* Color picker */}
+      <div className="p-3">
+        <p className="text-xs text-gray-500 font-medium uppercase tracking-wider mb-2">Couleur</p>
+        <div className="grid grid-cols-5 gap-1.5">
+          {MEASUREMENT_COLORS.map(c => (
+            <button
+              key={c}
+              onClick={() => setActiveColor(c)}
+              className={clsx(
+                'w-8 h-8 rounded-lg transition-transform hover:scale-110',
+                activeColor === c && 'ring-2 ring-white scale-110'
+              )}
+              style={{ backgroundColor: c }}
+              title={c}
+            />
+          ))}
+        </div>
+      </div>
+
+      {/* Unit selector */}
+      <div className="px-3 pb-3">
+        <p className="text-xs text-gray-500 font-medium uppercase tracking-wider mb-2">Unité</p>
+        <div className="grid grid-cols-3 gap-1">
+          {(['mm','cm','m','ft','in'] as Unit[]).map(u => (
+            <button
+              key={u}
+              onClick={() => setActiveUnit(u)}
+              className={clsx(
+                'py-1 rounded text-xs font-medium transition-colors',
+                activeUnit === u ? 'bg-blue-600 text-white' : 'bg-gray-800 text-gray-400 hover:bg-gray-700'
+              )}
+            >
+              {u}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div className="h-px bg-gray-800 mx-2" />
+
+      {/* Calibration info */}
+      <div className="p-3">
+        <p className="text-xs text-gray-500 font-medium uppercase tracking-wider mb-2">Calibration</p>
+        {calibration ? (
+          <div className="bg-green-900/30 border border-green-800 rounded-lg p-2">
+            <p className="text-xs text-green-400 font-medium">Calibrée</p>
+            <p className="text-xs text-green-300 mt-0.5">1px = {calibration.ratio.toFixed(4)} {calibration.unit}</p>
+            <p className="text-xs text-green-300">{calibration.realValue} {calibration.unit} / {calibration.pixelDistance.toFixed(1)}px</p>
+          </div>
+        ) : (
+          <div className="bg-red-900/30 border border-red-800 rounded-lg p-2">
+            <p className="text-xs text-red-400 font-medium">Non calibrée</p>
+            <p className="text-xs text-red-300 mt-0.5">Appuyez sur C pour calibrer l'échelle</p>
+          </div>
+        )}
+      </div>
+
+      {/* Counter tool settings */}
+      {activeTool === 'count' && (
+        <>
+          <div className="h-px bg-gray-800 mx-2" />
+          <div className="p-3">
+            <p className="text-xs text-gray-500 font-medium uppercase tracking-wider mb-2">Compteur</p>
+            <input
+              className="w-full bg-gray-800 border border-gray-700 rounded px-2 py-1.5 text-sm text-white mb-2 outline-none focus:border-blue-500"
+              value={counterName}
+              onChange={e => setCounterName(e.target.value)}
+              placeholder="Nom de l'élément"
+            />
+            <div className="flex flex-wrap gap-1.5">
+              {MEASUREMENT_COLORS.map(c => (
+                <button
+                  key={c}
+                  onClick={() => setCounterColor(c)}
+                  className={clsx('w-6 h-6 rounded-full transition-transform hover:scale-110', counterColor === c && 'ring-2 ring-white scale-110')}
+                  style={{ backgroundColor: c }}
+                />
+              ))}
+            </div>
+          </div>
+        </>
+      )}
+
+      {/* Roof tool settings */}
+      {activeTool === 'roof' && (
+        <>
+          <div className="h-px bg-gray-800 mx-2" />
+          <div className="p-3">
+            <p className="text-xs text-gray-500 font-medium uppercase tracking-wider mb-2">Pente toiture</p>
+            <div className="flex gap-1 mb-2">
+              {([['ratio','x/12'],['degrees','Degrés'],['percent','%']] as [string,string][]).map(([val,lbl]) => (
+                <button
+                  key={val}
+                  onClick={() => setSlopeFormat(val as any)}
+                  className={clsx('flex-1 py-1 rounded text-xs transition-colors', slopeFormat === val ? 'bg-orange-600 text-white' : 'bg-gray-800 text-gray-400 hover:bg-gray-700')}
+                >
+                  {lbl}
+                </button>
+              ))}
+            </div>
+            <div className="flex items-center gap-2">
+              <input
+                type="number"
+                className="flex-1 bg-gray-800 border border-gray-700 rounded px-2 py-1.5 text-sm text-white outline-none focus:border-orange-500"
+                value={slopeValue}
+                onChange={e => setSlopeValue(parseFloat(e.target.value) || 0)}
+                min={0}
+                step={slopeFormat === 'ratio' ? 0.5 : 1}
+              />
+              <span className="text-xs text-gray-400">
+                {slopeFormat === 'ratio' ? '/12' : slopeFormat === 'degrees' ? '°' : '%'}
+              </span>
+            </div>
+            <p className="text-xs text-gray-500 mt-2">
+              Facteur ×{(slopeFormat === 'degrees'
+                ? (1 / Math.cos(slopeValue * Math.PI / 180))
+                : Math.sqrt(1 + (slopeFormat === 'ratio' ? (slopeValue/12)**2 : (slopeValue/100)**2))
+              ).toFixed(3)}
+            </p>
+          </div>
+        </>
+      )}
+
+      {/* Active poste indicator */}
+      {activePoste && (
+        <>
+          <div className="h-px bg-gray-800 mx-2" />
+          <div className="p-3">
+            <p className="text-xs text-gray-500 font-medium uppercase tracking-wider mb-2">Poste actif</p>
+            <div className="flex items-center gap-2 bg-blue-900/30 border border-blue-700 rounded-lg px-2 py-2">
+              <div className="w-3 h-3 rounded-full shrink-0" style={{ backgroundColor: activePoste.color }} />
+              <p className="text-xs text-blue-200 font-medium flex-1 truncate">{activePoste.name}</p>
+              <button
+                onClick={() => setActivePosteId(null)}
+                className="p-0.5 text-blue-400 hover:text-white hover:bg-blue-800 rounded transition-colors"
+                title="Désactiver le poste"
+              >
+                <X size={12} />
+              </button>
+            </div>
+            <p className="text-xs text-blue-400/70 mt-1 flex items-center gap-1">
+              <Target size={10} /> Les mesures iront dans ce poste
+            </p>
+          </div>
+        </>
+      )}
+
+      {/* Keyboard shortcuts */}
+      <div className="flex-1" />
+      <div className="p-3 border-t border-gray-800">
+        <p className="text-xs text-gray-600 font-medium mb-1">Raccourcis</p>
+        <div className="space-y-0.5 text-xs text-gray-600">
+          <p>Double-clic / Entrée → Valider</p>
+          <p>Échap → Annuler</p>
+          <p>Suppr → Effacer sélection</p>
+          <p>Ctrl+Z / Ctrl+Y → Annuler/Refaire</p>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+export default Toolbar
