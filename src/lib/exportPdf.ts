@@ -174,7 +174,7 @@ export function exportPdf(project: Project) {
   }
 
   // ── Footer ─────────────────────────────────────────────────────────────────
-  const pageCount = (doc as any).internal.getNumberOfPages()
+  const pageCount = doc.getNumberOfPages()
   for (let p = 1; p <= pageCount; p++) {
     doc.setPage(p)
     doc.setFillColor(30, 58, 138)

@@ -17,6 +17,7 @@
     "@tailwindcss/vite": "^4.2.1",
     "clsx": "^2.1.1",
     "dexie": "^4.3.0",
+    "exceljs": "^4.4.0",
     "html2canvas": "^1.4.1",
     "jspdf": "^4.2.0",
     "konva": "^10.2.0",
@@ -26,7 +27,6 @@
     "react-dom": "^19.2.0",
     "react-konva": "^19.2.3",
     "tailwindcss": "^4.2.1",
-    "xlsx": "^0.18.5",
     "zustand": "^5.0.11"
   },
   "devDependencies": {

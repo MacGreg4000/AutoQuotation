@@ -33,8 +33,8 @@ const Header: React.FC = () => {
     }
   }
 
-  const handleExportExcel = () => {
-    exportExcel(buildProject())
+  const handleExportExcel = async () => {
+    await exportExcel(buildProject())
   }
 
   const handleExportPdf = () => {
