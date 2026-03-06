@@ -18,7 +18,6 @@ const Header: React.FC = () => {
   const handleZoomIn = () => window.dispatchEvent(new Event('zoom-in'))
   const handleZoomOut = () => window.dispatchEvent(new Event('zoom-out'))
   const handleZoomFit = () => window.dispatchEvent(new Event('zoom-fit'))
-  const handleOpenPdf = () => window.dispatchEvent(new Event('open-pdf'))
 
   const buildProject = () => ({ ...getProject(), pdfFileName })
 
@@ -69,10 +68,15 @@ const Header: React.FC = () => {
 
       {/* File actions */}
       <div className="flex items-center gap-1">
-        <HeaderBtn onClick={handleOpenPdf} title="Ouvrir un PDF (Ctrl+O)">
+        {/* label natif → pas de JS intermédiaire → fonctionne sur tous les navigateurs */}
+        <label
+          htmlFor="pdf-file-input"
+          className="flex items-center gap-1 px-2 py-1 rounded text-gray-300 text-xs transition-colors hover:bg-gray-700 hover:text-white cursor-pointer"
+          title="Ouvrir un PDF (Ctrl+O)"
+        >
           <FolderOpen size={15} />
-          <span className="text-xs">Ouvrir</span>
-        </HeaderBtn>
+          <span>Ouvrir</span>
+        </label>
         <HeaderBtn onClick={handleSave} title="Sauvegarder le projet (Ctrl+S)">
           <Save size={15} />
         </HeaderBtn>
