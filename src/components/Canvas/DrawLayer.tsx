@@ -23,7 +23,7 @@ interface DrawLayerProps {
 const DrawLayer: React.FC<DrawLayerProps> = ({ currentPoints, calibPoints, mousePos }) => {
   const { measurements, selectedMeasurementId, selectMeasurement, calibration } = useProjectStore()
   const { activeTool, activeColor } = useToolStore()
-  const { currentPage } = usePdfStore()
+  const { currentPage, zoom } = usePdfStore()
 
   const renderMeasurement = (m: Measurement) => {
     if (!m.visible || m.page !== currentPage) return null
@@ -132,22 +132,62 @@ const DrawLayer: React.FC<DrawLayerProps> = ({ currentPoints, calibPoints, mouse
 
   const renderCalibration = () => {
     if (activeTool !== 'calibrate' && calibPoints.length === 0) return null
-    const pts = mousePos && calibPoints.length === 1 ? [...calibPoints, mousePos] : calibPoints
+
+    // Tailles constantes en pixels écran, compensées par le zoom
+    const z = Math.max(zoom, 0.1)
+    const sw   = 1 / z       // trait 1px écran
+    const arm  = 14 / z      // longueur bras 14px écran
+    const gap  = 4 / z       // gap central 4px écran (on voit le point exact)
+    const dot  = 1.5 / z     // point central 1.5px écran
+    const ring = 10 / z      // rayon cercle extérieur 10px écran
+    const th   = 11 / z      // taille texte
+    const to   = 14 / z      // offset texte
+
+    // Réticule de précision : croix avec gap + mini point central + cercle extérieur
+    const Reticule = ({ x, y }: { x: number; y: number }) => (
+      <React.Fragment>
+        {/* Bras horizontaux */}
+        <Line points={[x - arm - gap, y, x - gap, y]} stroke="#ef4444" strokeWidth={sw} />
+        <Line points={[x + gap, y, x + arm + gap, y]} stroke="#ef4444" strokeWidth={sw} />
+        {/* Bras verticaux */}
+        <Line points={[x, y - arm - gap, x, y - gap]} stroke="#ef4444" strokeWidth={sw} />
+        <Line points={[x, y + gap, x, y + arm + gap]} stroke="#ef4444" strokeWidth={sw} />
+        {/* Point central minuscule */}
+        <Circle x={x} y={y} radius={dot} fill="#ef4444" />
+        {/* Cercle extérieur léger */}
+        <Circle x={x} y={y} radius={ring} stroke="#ef4444" strokeWidth={sw} fill="transparent" />
+      </React.Fragment>
+    )
+
     return (
       <Group>
-        {pts.length >= 2 && <Line points={pts.flatMap(p => [p.x, p.y])} stroke="#ef4444" strokeWidth={2} dash={[6, 3]} />}
-        {pts.map((p, i) => (
-          <React.Fragment key={i}>
-            <Circle x={p.x} y={p.y} radius={7} fill="#ef4444" />
-            <Line points={[p.x - 9, p.y, p.x + 9, p.y]} stroke="white" strokeWidth={2} />
-            <Line points={[p.x, p.y - 9, p.x, p.y + 9]} stroke="white" strokeWidth={2} />
-          </React.Fragment>
-        ))}
-        {activeTool === 'calibrate' && mousePos && calibPoints.length === 0 && (
-          <Text x={mousePos.x + 12} y={mousePos.y - 18} text="Clic 1er point" fill="#ef4444" fontSize={12} fontStyle="bold" />
+        {/* Ligne entre les deux points */}
+        {calibPoints.length >= 1 && mousePos && (
+          <Line
+            points={[calibPoints[0].x, calibPoints[0].y, mousePos.x, mousePos.y]}
+            stroke="#ef4444" strokeWidth={sw * 1.5} dash={[6 / z, 3 / z]}
+          />
         )}
-        {activeTool === 'calibrate' && mousePos && calibPoints.length === 1 && (
-          <Text x={mousePos.x + 12} y={mousePos.y - 18} text="Clic 2\u00e8me point" fill="#ef4444" fontSize={12} fontStyle="bold" />
+        {calibPoints.length === 2 && (
+          <Line
+            points={calibPoints.flatMap(p => [p.x, p.y])}
+            stroke="#ef4444" strokeWidth={sw * 1.5} dash={[6 / z, 3 / z]}
+          />
+        )}
+
+        {/* Points posés */}
+        {calibPoints.map((p, i) => <Reticule key={i} x={p.x} y={p.y} />)}
+
+        {/* Curseur actif (souris) */}
+        {activeTool === 'calibrate' && mousePos && calibPoints.length < 2 && (
+          <>
+            <Reticule x={mousePos.x} y={mousePos.y} />
+            <Text
+              x={mousePos.x + to} y={mousePos.y - to}
+              text={calibPoints.length === 0 ? 'Clic 1er point' : 'Clic 2ème point'}
+              fill="#ef4444" fontSize={th} fontStyle="bold"
+            />
+          </>
         )}
       </Group>
     )
