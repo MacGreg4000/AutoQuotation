@@ -131,7 +131,7 @@ const MeasurementRow: React.FC<{
       )}
       onClick={onSelect}
     >
-      <div className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: m.color }} />
+      <div className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: poste ? poste.color : m.color }} />
       <div className="flex-1 min-w-0">
         <p className="text-xs font-medium text-gray-200 truncate">{m.name}</p>
         <p className="text-xs text-gray-500">

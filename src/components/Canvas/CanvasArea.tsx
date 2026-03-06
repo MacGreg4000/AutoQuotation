@@ -133,13 +133,16 @@ const CanvasArea: React.FC = () => {
     const { currentPage } = usePdfStore.getState()
     const { activeColor, slopeFormat, slopeValue } = useToolStore.getState()
     const posteId = activePosteId ?? undefined
+    // Utiliser la couleur du poste actif si disponible
+    const activePoste = useProjectStore.getState().postes.find(p => p.id === activePosteId)
+    const color = activePoste ? activePoste.color : activeColor
 
     if (activeTool === "length") {
       if (final.length < 2) { setCurrentPoints([]); return }
       const pixLen = polylineLength(final)
       const value = parseFloat(toRealUnit(pixLen, calibration).toFixed(3))
       const count = useProjectStore.getState().measurements.filter(m => m.type === "length").length + 1
-      addMeasurement({ id: nanoid(), type: "length", name: "Longueur " + count, color: activeColor, page: currentPage, points: final, value, unit: calibration.unit, visible: true, posteId })
+      addMeasurement({ id: nanoid(), type: "length", name: "Longueur " + count, color, page: currentPage, points: final, value, unit: calibration.unit, visible: true, posteId })
     }
     if (activeTool === "area" || activeTool === "roof") {
       if (final.length < 3) { setCurrentPoints([]); return }
@@ -152,7 +155,7 @@ const CanvasArea: React.FC = () => {
       addMeasurement({
         id: nanoid(), type: activeTool,
         name: activeTool === "roof" ? "Toiture " + count : "Surface " + count,
-        color: activeColor, page: currentPage, points: final, value, unit: aUnit,
+        color, page: currentPage, points: final, value, unit: aUnit,
         slopeFormat: activeTool === "roof" ? slopeFormat : undefined,
         slopeValue: activeTool === "roof" ? slopeValue : undefined,
         slopeFactor: activeTool === "roof" ? sf : undefined,

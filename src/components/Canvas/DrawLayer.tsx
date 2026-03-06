@@ -21,7 +21,7 @@ interface DrawLayerProps {
 }
 
 const DrawLayer: React.FC<DrawLayerProps> = ({ currentPoints, calibPoints, mousePos }) => {
-  const { measurements, selectedMeasurementId, selectMeasurement, calibration } = useProjectStore()
+  const { measurements, selectedMeasurementId, selectMeasurement, calibration, postes } = useProjectStore()
   const { activeTool, activeColor } = useToolStore()
   const { currentPage, zoom } = usePdfStore()
 
@@ -31,6 +31,11 @@ const DrawLayer: React.FC<DrawLayerProps> = ({ currentPoints, calibPoints, mouse
     const isSelected = m.id === selectedMeasurementId
     const sw = isSelected ? 3 : 2
 
+    // Couleur effective : priorité à la couleur du poste si la mesure est assignée
+    const poste = postes.find(p => p.id === m.posteId)
+    const color = poste ? poste.color : m.color
+    const posteName = poste?.name
+
     if (m.type === 'length') {
       if (pts.length < 2) return null
       const flat = pts.flatMap(p => [p.x, p.y])
@@ -38,10 +43,17 @@ const DrawLayer: React.FC<DrawLayerProps> = ({ currentPoints, calibPoints, mouse
       const lx = (pts[midIdx].x + pts[Math.max(0, midIdx - 1)].x) / 2
       const ly = (pts[midIdx].y + pts[Math.max(0, midIdx - 1)].y) / 2
       const label = `${m.value.toFixed(2)} ${m.unit}`
+      const nlw = posteName ? Math.max(posteName.length * 6 + 6, 30) : 0
       return (
         <Group key={m.id} onClick={() => selectMeasurement(m.id)}>
-          <Line points={flat} stroke={m.color} strokeWidth={sw} lineCap="round" lineJoin="round" />
-          {pts.map((p, i) => <Circle key={i} x={p.x} y={p.y} radius={isSelected ? 5 : 3} fill={m.color} />)}
+          <Line points={flat} stroke={color} strokeWidth={sw} lineCap="round" lineJoin="round" />
+          {pts.map((p, i) => <Circle key={i} x={p.x} y={p.y} radius={isSelected ? 5 : 3} fill={color} />)}
+          {posteName && (
+            <>
+              <Rect x={lx - nlw / 2} y={ly - 30} width={nlw} height={14} fill={color} cornerRadius={3} />
+              <Text x={lx - nlw / 2 + 3} y={ly - 28} text={posteName} fill="white" fontSize={9} fontStyle="bold" />
+            </>
+          )}
           <Rect x={lx - 2} y={ly - 14} width={label.length * 7 + 8} height={16} fill="rgba(0,0,0,0.75)" cornerRadius={3} />
           <Text x={lx} y={ly - 12} text={label} fill="white" fontSize={11} fontStyle="bold" />
         </Group>
@@ -54,9 +66,17 @@ const DrawLayer: React.FC<DrawLayerProps> = ({ currentPoints, calibPoints, mouse
       const c = polygonCentroid(pts)
       const label = `${m.value.toFixed(2)} ${m.unit}`
       const lw = label.length * 7 + 8
+      const nlw = posteName ? Math.max(posteName.length * 6 + 6, 40) : 0
       return (
         <Group key={m.id} onClick={() => selectMeasurement(m.id)}>
-          <Line points={flat} stroke={m.color} strokeWidth={sw} closed fill={m.color + (isSelected ? '44' : '22')} lineCap="round" lineJoin="round" />
+          <Line points={flat} stroke={color} strokeWidth={sw} closed fill={color + (isSelected ? '44' : '22')} lineCap="round" lineJoin="round" />
+          {/* Étiquette nom du poste (couleur du poste) au-dessus de la valeur */}
+          {posteName && (
+            <>
+              <Rect x={c.x - nlw / 2} y={c.y - 30} width={nlw} height={14} fill={color} cornerRadius={3} />
+              <Text x={c.x - nlw / 2 + 3} y={c.y - 28} text={posteName} fill="white" fontSize={9} fontStyle="bold" />
+            </>
+          )}
           <Rect x={c.x - lw / 2} y={c.y - 14} width={lw} height={m.type === 'roof' ? 30 : 16} fill="rgba(0,0,0,0.75)" cornerRadius={3} />
           <Text x={c.x - lw / 2 + 4} y={c.y - 12} text={label} fill="white" fontSize={11} fontStyle="bold" />
           {m.type === 'roof' && m.slopeFactor && (
@@ -71,7 +91,7 @@ const DrawLayer: React.FC<DrawLayerProps> = ({ currentPoints, calibPoints, mouse
       if (!p) return null
       return (
         <Group key={m.id} onClick={() => selectMeasurement(m.id)}>
-          <Circle x={p.x} y={p.y} radius={9} fill={m.color} stroke={isSelected ? 'white' : m.color} strokeWidth={isSelected ? 2 : 0} />
+          <Circle x={p.x} y={p.y} radius={9} fill={color} stroke={isSelected ? 'white' : color} strokeWidth={isSelected ? 2 : 0} />
           <Text x={p.x - 4} y={p.y - 6} text="+" fill="white" fontSize={14} fontStyle="bold" />
         </Group>
       )

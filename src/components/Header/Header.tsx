@@ -4,11 +4,12 @@ import { useProjectStore } from '@/store/useProjectStore'
 import {
   ZoomIn, ZoomOut, Maximize2, ChevronLeft, ChevronRight,
   FolderOpen, Save, Download, FileText, RotateCcw, RotateCw,
-  Ruler
+  Ruler, Layers
 } from 'lucide-react'
 import clsx from 'clsx'
 import { exportExcel } from '@/lib/exportExcel'
 import { exportPdf } from '@/lib/exportPdf'
+import { exportAnnotatedPdf } from '@/lib/exportAnnotatedPdf'
 import { saveProject, loadProject } from '@/lib/projectStorage'
 
 const Header: React.FC = () => {
@@ -38,6 +39,11 @@ const Header: React.FC = () => {
 
   const handleExportPdf = () => {
     exportPdf(buildProject())
+  }
+
+  const handleExportAnnotatedPdf = async () => {
+    if (!pdfDocument) return
+    await exportAnnotatedPdf(buildProject(), pdfDocument)
   }
 
   const calibStatus = calibration
@@ -167,10 +173,16 @@ const Header: React.FC = () => {
               <Download size={15} />
               <span className="text-xs">Excel</span>
             </HeaderBtn>
-            <HeaderBtn onClick={handleExportPdf} title="Exporter rapport PDF">
+            <HeaderBtn onClick={handleExportPdf} title="Exporter rapport de métré PDF">
               <FileText size={15} />
               <span className="text-xs">PDF</span>
             </HeaderBtn>
+            {pdfDocument && (
+              <HeaderBtn onClick={handleExportAnnotatedPdf} title="Exporter le plan avec annotations">
+                <Layers size={15} />
+                <span className="text-xs">Plan</span>
+              </HeaderBtn>
+            )}
           </div>
         </>
       )}
