@@ -3,7 +3,7 @@ import { useToolStore } from '@/store/useToolStore'
 import { useProjectStore } from '@/store/useProjectStore'
 import { MEASUREMENT_COLORS } from '@/types'
 import type { ToolType, Unit } from '@/types'
-import { MousePointer2, Hand, Crosshair, Ruler, Square, Hash, Home, Target, X, SquareMinus } from 'lucide-react'
+import { MousePointer2, Hand, Crosshair, Ruler, Square, Hash, Home, Target, X, SquareMinus, Building2 } from 'lucide-react'
 import clsx from 'clsx'
 
 const TOOLS: { type: ToolType; icon: React.ReactNode; label: string; shortcut: string; color: string }[] = [
@@ -12,6 +12,7 @@ const TOOLS: { type: ToolType; icon: React.ReactNode; label: string; shortcut: s
   { type: 'calibrate', icon: <Crosshair size={18} />, label: 'Calibration', shortcut: 'C', color: 'text-red-400' },
   { type: 'length', icon: <Ruler size={18} />, label: 'Longueur', shortcut: '1', color: 'text-blue-400' },
   { type: 'area', icon: <Square size={18} />, label: 'Surface', shortcut: '2', color: 'text-green-400' },
+  { type: 'wall', icon: <Building2 size={18} />, label: 'Surface mur', shortcut: '6', color: 'text-purple-400' },
   { type: 'subtract', icon: <SquareMinus size={18} />, label: 'Soustraire', shortcut: '5', color: 'text-red-400' },
   { type: 'count', icon: <Hash size={18} />, label: 'Compteur', shortcut: '3', color: 'text-yellow-400' },
   { type: 'roof', icon: <Home size={18} />, label: 'Toiture', shortcut: '4', color: 'text-orange-400' },
@@ -20,6 +21,8 @@ const TOOLS: { type: ToolType; icon: React.ReactNode; label: string; shortcut: s
 const Toolbar: React.FC = () => {
   const { activeTool, setActiveTool, activeColor, setActiveColor, activeUnit, setActiveUnit,
     counterName, setCounterName, counterColor, setCounterColor,
+    counterUnitWidth, setCounterUnitWidth, counterUnitHeight, setCounterUnitHeight,
+    wallHeight, setWallHeight,
     slopeFormat, setSlopeFormat, slopeValue, setSlopeValue } = useToolStore()
   const { calibration, postes, activePosteId, setActivePosteId } = useProjectStore()
   const activePoste = postes.find(p => p.id === activePosteId)
@@ -122,7 +125,7 @@ const Toolbar: React.FC = () => {
               onChange={e => setCounterName(e.target.value)}
               placeholder="Nom de l'élément"
             />
-            <div className="flex flex-wrap gap-1.5">
+            <div className="flex flex-wrap gap-1.5 mb-3">
               {MEASUREMENT_COLORS.map(c => (
                 <button
                   key={c}
@@ -132,6 +135,61 @@ const Toolbar: React.FC = () => {
                 />
               ))}
             </div>
+            {/* Dimensions ouverture (porte/fenêtre) */}
+            <p className="text-xs text-gray-500 font-medium uppercase tracking-wider mb-1">Dimensions ouverture</p>
+            <p className="text-xs text-gray-600 mb-2">Laisser à 0 pour un simple compteur</p>
+            <div className="flex items-center gap-1 mb-1">
+              <input
+                type="number"
+                className="w-full bg-gray-800 border border-gray-700 rounded px-2 py-1.5 text-sm text-white outline-none focus:border-yellow-500"
+                value={counterUnitWidth || ''}
+                onChange={e => setCounterUnitWidth(parseFloat(e.target.value) || 0)}
+                placeholder="Largeur"
+                min={0}
+                step={0.05}
+              />
+              <span className="text-gray-500 text-xs shrink-0">×</span>
+              <input
+                type="number"
+                className="w-full bg-gray-800 border border-gray-700 rounded px-2 py-1.5 text-sm text-white outline-none focus:border-yellow-500"
+                value={counterUnitHeight || ''}
+                onChange={e => setCounterUnitHeight(parseFloat(e.target.value) || 0)}
+                placeholder="Hauteur"
+                min={0}
+                step={0.05}
+              />
+            </div>
+            {counterUnitWidth > 0 && counterUnitHeight > 0 && (
+              <p className="text-xs text-yellow-400 mt-1">
+                Chaque unité = {(counterUnitWidth * counterUnitHeight).toFixed(3)} {activeUnit}²
+              </p>
+            )}
+          </div>
+        </>
+      )}
+
+      {/* Wall tool settings */}
+      {activeTool === 'wall' && (
+        <>
+          <div className="h-px bg-gray-800 mx-2" />
+          <div className="p-3">
+            <p className="text-xs text-gray-500 font-medium uppercase tracking-wider mb-2">Surface mur</p>
+            <p className="text-xs text-gray-400 mb-2">Tracez le périmètre des murs, la surface est calculée automatiquement.</p>
+            <label className="text-xs text-gray-400 block mb-1">Hauteur de mur</label>
+            <div className="flex items-center gap-2">
+              <input
+                type="number"
+                className="flex-1 bg-gray-800 border border-gray-700 rounded px-2 py-1.5 text-sm text-white outline-none focus:border-purple-500"
+                value={wallHeight}
+                onChange={e => setWallHeight(parseFloat(e.target.value) || 0)}
+                min={0}
+                step={0.1}
+              />
+              <span className="text-xs text-gray-400">{activeUnit}</span>
+            </div>
+            <p className="text-xs text-gray-500 mt-2">
+              Surface = périmètre × {wallHeight} {activeUnit}
+            </p>
           </div>
         </>
       )}

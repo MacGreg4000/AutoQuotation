@@ -7,6 +7,7 @@ const TYPE_LABELS: Record<MeasurementType, string> = {
   count: 'Compteur',
   roof: 'Toiture',
   subtract: 'Déduction',
+  wall: 'Surface mur',
 }
 
 export function exportPdf(project: Project) {

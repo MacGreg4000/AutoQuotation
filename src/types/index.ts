@@ -5,8 +5,8 @@ export interface Poste {
   name: string   // e.g. "Sol en carrelage 60x60"
   color: string  // visual identifier
 }
-export type MeasurementType = 'length' | 'area' | 'count' | 'roof' | 'subtract'
-export type ToolType = 'select' | 'pan' | 'calibrate' | 'length' | 'area' | 'count' | 'roof' | 'subtract'
+export type MeasurementType = 'length' | 'area' | 'count' | 'roof' | 'subtract' | 'wall'
+export type ToolType = 'select' | 'pan' | 'calibrate' | 'length' | 'area' | 'count' | 'roof' | 'subtract' | 'wall'
 
 export interface Point {
   x: number
@@ -33,6 +33,8 @@ export interface Measurement {
   slopeFormat?: 'ratio' | 'degrees' | 'percent'
   slopeValue?: number  // x in x/12, or degrees, or percent
   slopeFactor?: number
+  // Wall specific
+  wallHeight?: number   // real-world height (in calibration unit)
   // Note
   note?: string
   visible: boolean
@@ -44,6 +46,7 @@ export interface LegendConfig {
   x: number       // position en coordonnées PDF (scale=1)
   y: number
   visible: boolean
+  page: number    // page PDF sur laquelle la légende est affichée
 }
 
 export interface Project {
@@ -92,6 +95,7 @@ export const TOOL_LABELS: Record<ToolType, string> = {
   count: 'Compteur',
   roof: 'Toiture',
   subtract: 'Soustraire',
+  wall: 'Surface mur',
 }
 
-export const DEFAULT_LEGEND: LegendConfig = { x: 20, y: 20, visible: false }
+export const DEFAULT_LEGEND: LegendConfig = { x: 20, y: 20, visible: false, page: 1 }

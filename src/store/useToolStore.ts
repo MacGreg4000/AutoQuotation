@@ -9,6 +9,10 @@ interface ToolStore {
   // Counter tool
   counterName: string
   counterColor: string
+  counterUnitWidth: number   // door/window width in calibration unit (0 = disabled)
+  counterUnitHeight: number  // door/window height in calibration unit (0 = disabled)
+  // Wall tool
+  wallHeight: number         // wall height in calibration unit (default 2.5m)
   // Roof tool
   slopeFormat: 'ratio' | 'degrees' | 'percent'
   slopeValue: number
@@ -22,6 +26,9 @@ interface ToolStore {
   setMeasurementName: (name: string) => void
   setCounterName: (name: string) => void
   setCounterColor: (color: string) => void
+  setCounterUnitWidth: (w: number) => void
+  setCounterUnitHeight: (h: number) => void
+  setWallHeight: (h: number) => void
   setSlopeFormat: (format: 'ratio' | 'degrees' | 'percent') => void
   setSlopeValue: (value: number) => void
   setCalibrating: (v: boolean) => void
@@ -35,6 +42,9 @@ export const useToolStore = create<ToolStore>((set) => ({
   measurementName: '',
   counterName: 'Élément',
   counterColor: '#3b82f6',
+  counterUnitWidth: 0,
+  counterUnitHeight: 0,
+  wallHeight: 2.5,
   slopeFormat: 'ratio',
   slopeValue: 4,
   isCalibrating: false,
@@ -46,6 +56,9 @@ export const useToolStore = create<ToolStore>((set) => ({
   setMeasurementName: (name) => set({ measurementName: name }),
   setCounterName: (name) => set({ counterName: name }),
   setCounterColor: (color) => set({ counterColor: color }),
+  setCounterUnitWidth: (w) => set({ counterUnitWidth: w }),
+  setCounterUnitHeight: (h) => set({ counterUnitHeight: h }),
+  setWallHeight: (h) => set({ wallHeight: h }),
   setSlopeFormat: (format) => set({ slopeFormat: format }),
   setSlopeValue: (value) => set({ slopeValue: value }),
   setCalibrating: (v) => set({ isCalibrating: v }),

@@ -114,6 +114,33 @@ const DrawLayer: React.FC<DrawLayerProps> = ({ currentPoints, calibPoints, mouse
       )
     }
 
+    if (m.type === 'wall') {
+      if (pts.length < 2) return null
+      const flat = pts.flatMap(p => [p.x, p.y])
+      const midIdx = Math.floor(pts.length / 2)
+      const lx = (pts[midIdx].x + pts[Math.max(0, midIdx - 1)].x) / 2
+      const ly = (pts[midIdx].y + pts[Math.max(0, midIdx - 1)].y) / 2
+      const label = `${m.value.toFixed(2)} ${m.unit}`
+      const lw = label.length * 7 + 8
+      const nlw = posteName ? Math.max(posteName.length * 6 + 6, 30) : 0
+      const subLabel = m.wallHeight ? `périm.×${m.wallHeight}` : ''
+      return (
+        <Group key={m.id} onClick={() => selectMeasurement(m.id)}>
+          <Line points={flat} stroke={color} strokeWidth={sw} lineCap="round" lineJoin="round" dash={[6, 3]} />
+          {pts.map((p, i) => <Circle key={i} x={p.x} y={p.y} radius={isSelected ? 5 : 3} fill={color} />)}
+          {posteName && (
+            <>
+              <Rect x={lx - nlw / 2} y={ly - 46} width={nlw} height={14} fill={color} cornerRadius={3} />
+              <Text x={lx - nlw / 2 + 3} y={ly - 44} text={posteName} fill="white" fontSize={9} fontStyle="bold" />
+            </>
+          )}
+          <Rect x={lx - lw / 2} y={ly - 30} width={lw} height={28} fill="rgba(88,28,135,0.85)" cornerRadius={3} />
+          <Text x={lx - lw / 2 + 4} y={ly - 28} text={label} fill="white" fontSize={11} fontStyle="bold" />
+          {subLabel && <Text x={lx - lw / 2 + 4} y={ly - 14} text={subLabel} fill="#d8b4fe" fontSize={9} />}
+        </Group>
+      )
+    }
+
     if (m.type === 'count') {
       const p = pts[0]
       if (!p) return null
@@ -129,6 +156,7 @@ const DrawLayer: React.FC<DrawLayerProps> = ({ currentPoints, calibPoints, mouse
 
   const renderLegend = () => {
     if (!legend.visible) return null
+    if (legend.page !== currentPage) return null
     const visiblePostes = postes.filter(p => posteStats[p.id]?.count > 0)
     if (visiblePostes.length === 0) return null
 
@@ -190,22 +218,31 @@ const DrawLayer: React.FC<DrawLayerProps> = ({ currentPoints, calibPoints, mouse
 
   const renderActive = () => {
     const tool = activeTool
-    if (!['length', 'area', 'roof', 'subtract'].includes(tool) || currentPoints.length === 0) return null
+    if (!['length', 'area', 'roof', 'subtract', 'wall'].includes(tool) || currentPoints.length === 0) return null
     const preview = mousePos ? [...currentPoints, mousePos] : currentPoints
 
-    if (tool === 'length' || tool === 'roof') {
+    if (tool === 'length' || tool === 'roof' || tool === 'wall') {
       const flat = preview.flatMap(p => [p.x, p.y])
       const last = preview[preview.length - 1]
       const pixLen = polylineLength(preview.slice(0, -1))
-      const label = calibration
-        ? `${toRealUnit(pixLen, calibration).toFixed(2)} ${calibration.unit}`
-        : `${Math.round(pixLen)}px`
+      const { wallHeight } = useToolStore.getState()
+      let label: string
+      if (tool === 'wall' && calibration) {
+        const perimeter = toRealUnit(pixLen, calibration)
+        const area = perimeter * wallHeight
+        label = `${area.toFixed(2)} ${getAreaUnit(calibration.unit)} (p=${perimeter.toFixed(2)})`
+      } else {
+        label = calibration
+          ? `${toRealUnit(pixLen, calibration).toFixed(2)} ${calibration.unit}`
+          : `${Math.round(pixLen)}px`
+      }
+      const previewColor = tool === 'wall' ? '#a855f7' : activeColor
       return (
         <Group>
-          <Line points={flat} stroke={activeColor} strokeWidth={2} dash={[8, 4]} lineCap="round" />
-          {currentPoints.map((p, i) => <Circle key={i} x={p.x} y={p.y} radius={4} fill={activeColor} />)}
+          <Line points={flat} stroke={previewColor} strokeWidth={2} dash={[8, 4]} lineCap="round" />
+          {currentPoints.map((p, i) => <Circle key={i} x={p.x} y={p.y} radius={4} fill={previewColor} />)}
           {last && <>
-            <Rect x={last.x + 12} y={last.y - 14} width={label.length * 7 + 8} height={16} fill="rgba(0,0,0,0.85)" cornerRadius={3} />
+            <Rect x={last.x + 12} y={last.y - 14} width={label.length * 6.5 + 8} height={16} fill="rgba(0,0,0,0.85)" cornerRadius={3} />
             <Text x={last.x + 14} y={last.y - 12} text={label} fill="white" fontSize={11} />
           </>}
         </Group>

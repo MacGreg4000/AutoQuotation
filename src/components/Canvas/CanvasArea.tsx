@@ -131,7 +131,7 @@ const CanvasArea: React.FC = () => {
     const final = pts.length > 1 ? pts.slice(0, -1) : pts
     if (final.length < 1) { setCurrentPoints([]); return }
     const { currentPage } = usePdfStore.getState()
-    const { activeColor, slopeFormat, slopeValue } = useToolStore.getState()
+    const { activeColor, slopeFormat, slopeValue, wallHeight } = useToolStore.getState()
     const posteId = activePosteId ?? undefined
     // Utiliser la couleur du poste actif si disponible
     const activePoste = useProjectStore.getState().postes.find(p => p.id === activePosteId)
@@ -143,6 +143,15 @@ const CanvasArea: React.FC = () => {
       const value = parseFloat(toRealUnit(pixLen, calibration).toFixed(3))
       const count = useProjectStore.getState().measurements.filter(m => m.type === "length").length + 1
       addMeasurement({ id: nanoid(), type: "length", name: "Longueur " + count, color, page: currentPage, points: final, value, unit: calibration.unit, visible: true, posteId })
+    }
+    if (activeTool === "wall") {
+      if (final.length < 2) { setCurrentPoints([]); return }
+      const pixLen = polylineLength(final)
+      const perimeter = toRealUnit(pixLen, calibration)
+      const value = parseFloat((perimeter * wallHeight).toFixed(3))
+      const aUnit = getAreaUnit(calibration.unit)
+      const count = useProjectStore.getState().measurements.filter(m => m.type === "wall").length + 1
+      addMeasurement({ id: nanoid(), type: "wall", name: "Mur " + count, color, page: currentPage, points: final, value, unit: aUnit, wallHeight, visible: true, posteId })
     }
     if (activeTool === "area" || activeTool === "roof" || activeTool === "subtract") {
       if (final.length < 3) { setCurrentPoints([]); return }
@@ -192,7 +201,7 @@ const CanvasArea: React.FC = () => {
         if (pts.length >= 2) finalizeMeasurement(pts)
       }
       if (!e.ctrlKey && !e.metaKey && !inInput) {
-        const map: Record<string, any> = { "1": "length", "2": "area", "3": "count", "4": "roof", "5": "subtract", "c": "calibrate", "C": "calibrate" }
+        const map: Record<string, any> = { "1": "length", "2": "area", "3": "count", "4": "roof", "5": "subtract", "6": "wall", "c": "calibrate", "C": "calibrate" }
         if (map[e.key]) { setActiveTool(map[e.key]); setCurrentPoints([]) }
       }
     }
@@ -280,13 +289,16 @@ const CanvasArea: React.FC = () => {
       return
     }
     if (tool === "count") {
-      const { counterName, counterColor } = useToolStore.getState()
+      const { counterName, counterColor, counterUnitWidth, counterUnitHeight } = useToolStore.getState()
       const { currentPage } = usePdfStore.getState()
-      const { activePosteId } = useProjectStore.getState()
-      addMeasurement({ id: nanoid(), type: "count", name: counterName, color: counterColor, page: currentPage, points: [pos], value: 1, unit: "unites", visible: true, posteId: activePosteId ?? undefined })
+      const { activePosteId, calibration } = useProjectStore.getState()
+      const hasDims = counterUnitWidth > 0 && counterUnitHeight > 0
+      const value = hasDims ? parseFloat((counterUnitWidth * counterUnitHeight).toFixed(4)) : 1
+      const unit = hasDims && calibration ? getAreaUnit(calibration.unit) : 'unites'
+      addMeasurement({ id: nanoid(), type: "count", name: counterName, color: counterColor, page: currentPage, points: [pos], value, unit, visible: true, posteId: activePosteId ?? undefined })
       return
     }
-    if (["length", "area", "roof", "subtract"].includes(tool)) {
+    if (["length", "area", "roof", "subtract", "wall"].includes(tool)) {
       setCurrentPoints(prev => [...prev, pos])
     }
   }, [isPanning, getStagePointerPos, addMeasurement])
@@ -335,7 +347,7 @@ const CanvasArea: React.FC = () => {
     if (isPanning) return "grabbing"
     switch (activeTool) {
       case "pan": return "grab"
-      case "calibrate": case "length": case "area": case "roof": case "subtract": return "crosshair"
+      case "calibrate": case "length": case "area": case "roof": case "subtract": case "wall": return "crosshair"
       case "count": return "cell"
       default: return "default"
     }

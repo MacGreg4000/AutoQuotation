@@ -169,8 +169,8 @@ const Header: React.FC = () => {
         <>
           <div className="h-6 w-px bg-gray-700" />
           <button
-            onClick={toggleLegend}
-            title={legend.visible ? 'Masquer la légende sur le plan' : 'Afficher la légende sur le plan'}
+            onClick={() => toggleLegend(currentPage)}
+            title={legend.visible ? `Masquer la légende (page ${legend.page})` : `Afficher la légende sur la page ${currentPage}`}
             className={clsx(
               'flex items-center gap-1 px-2 py-1 rounded text-xs transition-colors',
               legend.visible

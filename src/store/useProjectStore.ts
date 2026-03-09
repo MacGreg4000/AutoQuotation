@@ -26,7 +26,7 @@ interface ProjectStore {
   // Légende flottante
   legend: LegendConfig
   setLegend: (updates: Partial<LegendConfig>) => void
-  toggleLegend: () => void
+  toggleLegend: (page: number) => void
   // Postes
   addPoste: (p: Poste) => void
   updatePoste: (id: string, updates: Partial<Poste>) => void
@@ -93,7 +93,7 @@ export const useProjectStore = create<ProjectStore>((set, get) => ({
   selectMeasurement: (id) => set({ selectedMeasurementId: id }),
 
   setLegend: (updates) => set(s => ({ legend: { ...s.legend, ...updates } })),
-  toggleLegend: () => set(s => ({ legend: { ...s.legend, visible: !s.legend.visible } })),
+  toggleLegend: (page) => set(s => ({ legend: { ...s.legend, visible: !s.legend.visible, page } })),
 
   addPoste: (p) => set(s => ({ postes: [...s.postes, p] })),
 

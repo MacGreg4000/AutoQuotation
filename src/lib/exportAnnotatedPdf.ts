@@ -131,6 +131,34 @@ function drawMeasurement(
     }
   }
 
+  if (m.type === 'wall') {
+    if (pts.length < 2) { ctx.restore(); return }
+    ctx.beginPath()
+    ctx.moveTo(pts[0].x * s, pts[0].y * s)
+    for (let i = 1; i < pts.length; i++) ctx.lineTo(pts[i].x * s, pts[i].y * s)
+    ctx.strokeStyle = color
+    ctx.lineWidth = 2
+    ctx.setLineDash([6, 3])
+    ctx.lineCap = 'round'
+    ctx.lineJoin = 'round'
+    ctx.stroke()
+    ctx.setLineDash([])
+    pts.forEach(p => {
+      ctx.beginPath()
+      ctx.arc(p.x * s, p.y * s, 3, 0, Math.PI * 2)
+      ctx.fillStyle = color
+      ctx.fill()
+    })
+    const mid = Math.floor(pts.length / 2)
+    const lx = (pts[mid].x + pts[Math.max(0, mid - 1)].x) / 2 * s
+    const ly = (pts[mid].y + pts[Math.max(0, mid - 1)].y) / 2 * s
+    if (posteName) {
+      drawLabel(ctx, lx, ly - 24, posteName, color, 'white', 9)
+    }
+    const subLabel = m.wallHeight ? `p×${m.wallHeight}` : ''
+    drawLabel(ctx, lx, ly - (posteName ? 6 : 8), `${m.value.toFixed(2)} ${m.unit}${subLabel ? ` (${subLabel})` : ''}`, 'rgba(88,28,135,0.85)')
+  }
+
   if (m.type === 'subtract') {
     if (pts.length < 3) { ctx.restore(); return }
     ctx.beginPath()
@@ -307,8 +335,10 @@ export async function exportAnnotatedPdf(project: Project, pdfDoc: any): Promise
       drawMeasurement(ctx, m, color, posteName)
     }
 
-    // Légende flottante sur chaque page
-    drawExportLegend(ctx, project, posteMap)
+    // Légende flottante uniquement sur la page où elle est positionnée
+    if (pageNum === (project.legend?.page ?? 1)) {
+      drawExportLegend(ctx, project, posteMap)
+    }
 
     // Conversion canvas → image JPEG
     const imgData = canvas.toDataURL('image/jpeg', 0.92)
