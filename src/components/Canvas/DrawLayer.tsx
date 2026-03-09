@@ -132,11 +132,16 @@ const DrawLayer: React.FC<DrawLayerProps> = ({ currentPoints, calibPoints, mouse
     const visiblePostes = postes.filter(p => posteStats[p.id]?.count > 0)
     if (visiblePostes.length === 0) return null
 
-    const W = 185
-    const TITLE_H = 20
-    const ROW_H = 16
-    const PAD_B = 5
-    const H = TITLE_H + visiblePostes.length * ROW_H + PAD_B
+    // Tableau style Excel : 3 colonnes — pastille | désignation | total
+    const DOT_W  = 18   // colonne pastille couleur
+    const NAME_W = 120  // colonne nom du poste
+    const VAL_W  = 75   // colonne valeur
+    const W      = DOT_W + NAME_W + VAL_W  // 213 px total
+    const ROW_H  = 14
+    const HDR_H  = 14
+    const H      = HDR_H + visiblePostes.length * ROW_H
+    const x1     = DOT_W           // séparateur col 1 | col 2
+    const x2     = DOT_W + NAME_W  // séparateur col 2 | col 3
 
     return (
       <Group
@@ -144,25 +149,38 @@ const DrawLayer: React.FC<DrawLayerProps> = ({ currentPoints, calibPoints, mouse
         draggable
         onDragEnd={e => setLegend({ x: e.target.x(), y: e.target.y() })}
       >
-        {/* Ombre simulée */}
-        <Rect x={3} y={3} width={W} height={H} fill="rgba(0,0,0,0.18)" cornerRadius={4} />
-        {/* Fond blanc */}
-        <Rect width={W} height={H} fill="rgba(255,255,255,0.97)" stroke="#374151" strokeWidth={0.8} cornerRadius={4} />
-        {/* Barre titre */}
-        <Rect width={W} height={TITLE_H} fill="#1e3a8a" cornerRadius={[4, 4, 0, 0] as any} />
-        <Text x={7} y={TITLE_H / 2 - 5} text="Métré récapitulatif" fill="white" fontSize={10} fontStyle="bold" />
-        {/* Lignes */}
+        {/* Fond général blanc avec bordure fine */}
+        <Rect width={W} height={H} fill="white" stroke="#6b7280" strokeWidth={1} />
+
+        {/* En-tête gris clair */}
+        <Rect width={W} height={HDR_H} fill="#d1d5db" />
+        <Line points={[0, HDR_H, W, HDR_H]} stroke="#6b7280" strokeWidth={1} />
+        <Text x={x1 + 3} y={3} text="Désignation" fill="#374151" fontSize={8} fontStyle="bold" width={NAME_W - 4} />
+        <Text x={x2 + 3} y={3} text="Total"        fill="#374151" fontSize={8} fontStyle="bold" width={VAL_W  - 4} />
+
+        {/* Séparateurs verticaux sur toute la hauteur */}
+        <Line points={[x1, 0, x1, H]} stroke="#9ca3af" strokeWidth={0.5} />
+        <Line points={[x2, 0, x2, H]} stroke="#9ca3af" strokeWidth={0.5} />
+
+        {/* Lignes de données */}
         {visiblePostes.map((p, i) => {
-          const s = posteStats[p.id]
-          const ry = TITLE_H + i * ROW_H
-          const isEven = i % 2 === 0
+          const s  = posteStats[p.id]
+          const ry = HDR_H + i * ROW_H
           return (
             <Group key={p.id} y={ry}>
-              {isEven && <Rect width={W} height={ROW_H} fill="#f9fafb" />}
-              <Circle x={12} y={ROW_H / 2} radius={4} fill={p.color} />
-              <Text x={22} y={ROW_H / 2 - 5} text={p.name} fill="#111827" fontSize={9} width={110} ellipsis />
-              <Text x={W - 8} y={ROW_H / 2 - 5} text={`${s.total.toFixed(2)} ${s.unit}`}
-                fill="#111827" fontSize={9} fontStyle="bold" align="right" width={62} />
+              {/* Fond alterné */}
+              {i % 2 !== 0 && <Rect width={W} height={ROW_H} fill="#f3f4f6" />}
+              {/* Séparateur horizontal */}
+              {i > 0 && <Line points={[0, 0, W, 0]} stroke="#e5e7eb" strokeWidth={0.5} />}
+              {/* Pastille couleur */}
+              <Circle x={DOT_W / 2} y={ROW_H / 2} radius={4} fill={p.color} />
+              {/* Nom */}
+              <Text x={x1 + 3} y={ROW_H / 2 - 4} text={p.name}
+                fill="#111827" fontSize={8} width={NAME_W - 5} ellipsis />
+              {/* Valeur */}
+              <Text x={x2 + 3} y={ROW_H / 2 - 4}
+                text={`${s.total.toFixed(2)} ${s.unit}`}
+                fill="#111827" fontSize={8} width={VAL_W - 5} />
             </Group>
           )
         })}
@@ -172,7 +190,7 @@ const DrawLayer: React.FC<DrawLayerProps> = ({ currentPoints, calibPoints, mouse
 
   const renderActive = () => {
     const tool = activeTool
-    if (!['length', 'area', 'roof'].includes(tool) || currentPoints.length === 0) return null
+    if (!['length', 'area', 'roof', 'subtract'].includes(tool) || currentPoints.length === 0) return null
     const preview = mousePos ? [...currentPoints, mousePos] : currentPoints
 
     if (tool === 'length' || tool === 'roof') {

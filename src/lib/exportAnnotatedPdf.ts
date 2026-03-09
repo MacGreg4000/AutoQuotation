@@ -171,70 +171,94 @@ function drawExportLegend(ctx: CanvasRenderingContext2D, project: Project, poste
   )
   if (visiblePostes.length === 0) return
 
-  const S = EXPORT_SCALE
-  const lx = project.legend.x * S
-  const ly = project.legend.y * S
-  const W = 190 * S
-  const TITLE_H = 20 * S
-  const ROW_H = 16 * S
-  const PAD_B = 6 * S
-  const H = TITLE_H + visiblePostes.length * ROW_H + PAD_B
+  const S     = EXPORT_SCALE
+  const lx    = project.legend.x * S
+  const ly    = project.legend.y * S
+
+  // Mêmes proportions que le composant Konva (× EXPORT_SCALE)
+  const DOT_W  = 18 * S
+  const NAME_W = 120 * S
+  const VAL_W  = 75 * S
+  const W      = DOT_W + NAME_W + VAL_W
+  const HDR_H  = 14 * S
+  const ROW_H  = 14 * S
+  const H      = HDR_H + visiblePostes.length * ROW_H
+  const x1     = lx + DOT_W
+  const x2     = lx + DOT_W + NAME_W
 
   ctx.save()
+  ctx.textBaseline = 'middle'
 
-  // Ombre
-  ctx.fillStyle = 'rgba(0,0,0,0.15)'
-  roundRect(ctx, lx + 3, ly + 3, W, H, 4 * S)
-  ctx.fill()
-
-  // Fond blanc
-  ctx.fillStyle = 'rgba(255,255,255,0.97)'
-  roundRect(ctx, lx, ly, W, H, 4 * S)
-  ctx.fill()
-  ctx.strokeStyle = '#374151'
+  // Fond blanc + bordure
+  ctx.fillStyle = 'white'
+  ctx.fillRect(lx, ly, W, H)
+  ctx.strokeStyle = '#6b7280'
   ctx.lineWidth = 1
+  ctx.strokeRect(lx, ly, W, H)
+
+  // En-tête gris
+  ctx.fillStyle = '#d1d5db'
+  ctx.fillRect(lx, ly, W, HDR_H)
+  ctx.strokeStyle = '#6b7280'
+  ctx.lineWidth = 1
+  ctx.beginPath()
+  ctx.moveTo(lx, ly + HDR_H)
+  ctx.lineTo(lx + W, ly + HDR_H)
   ctx.stroke()
 
-  // Barre titre
-  ctx.fillStyle = '#1e3a8a'
-  ctx.fillRect(lx, ly, W, TITLE_H)
-  ctx.fillStyle = 'white'
-  ctx.font = `bold ${10 * S}px Arial, sans-serif`
+  ctx.fillStyle = '#374151'
+  ctx.font = `bold ${8 * S}px Arial, sans-serif`
   ctx.textAlign = 'left'
-  ctx.textBaseline = 'middle'
-  ctx.fillText('Métré récapitulatif', lx + 8 * S, ly + TITLE_H / 2)
+  ctx.fillText('Désignation', x1 + 3 * S, ly + HDR_H / 2)
+  ctx.fillText('Total', x2 + 3 * S, ly + HDR_H / 2)
 
-  // Lignes par poste
+  // Séparateurs verticaux
+  ctx.strokeStyle = '#9ca3af'
+  ctx.lineWidth = 0.5
+  ctx.beginPath()
+  ctx.moveTo(x1, ly); ctx.lineTo(x1, ly + H)
+  ctx.moveTo(x2, ly); ctx.lineTo(x2, ly + H)
+  ctx.stroke()
+
+  // Lignes de données
   visiblePostes.forEach((p, i) => {
     const assigned = project.measurements.filter(m => m.posteId === p.id)
     const total = assigned.reduce((sum, m) => sum + m.value, 0)
-    const unit = assigned.find(m => m.unit)?.unit ?? '—'
-    const ry = ly + TITLE_H + i * ROW_H
+    const unit  = assigned.find(m => m.unit)?.unit ?? '—'
+    const ry    = ly + HDR_H + i * ROW_H
+    const midY  = ry + ROW_H / 2
 
-    if (i % 2 === 0) {
-      ctx.fillStyle = '#f9fafb'
+    // Fond alterné
+    if (i % 2 !== 0) {
+      ctx.fillStyle = '#f3f4f6'
       ctx.fillRect(lx, ry, W, ROW_H)
     }
+    // Séparateur horizontal
+    if (i > 0) {
+      ctx.strokeStyle = '#e5e7eb'
+      ctx.lineWidth = 0.5
+      ctx.beginPath()
+      ctx.moveTo(lx, ry); ctx.lineTo(lx + W, ry)
+      ctx.stroke()
+    }
 
-    // Point couleur
+    // Pastille couleur
     ctx.fillStyle = p.color
     ctx.beginPath()
-    ctx.arc(lx + 10 * S, ry + ROW_H / 2, 4 * S, 0, Math.PI * 2)
+    ctx.arc(lx + DOT_W / 2, midY, 4 * S, 0, Math.PI * 2)
     ctx.fill()
 
-    // Nom du poste
+    // Nom du poste (tronqué si trop long)
     ctx.fillStyle = '#111827'
-    ctx.font = `${9 * S}px Arial, sans-serif`
+    ctx.font = `${8 * S}px Arial, sans-serif`
     ctx.textAlign = 'left'
     let name = p.name
-    while (ctx.measureText(name).width > 110 * S && name.length > 3) name = name.slice(0, -1)
+    while (ctx.measureText(name).width > NAME_W - 5 * S && name.length > 3) name = name.slice(0, -1)
     if (name !== p.name) name += '…'
-    ctx.fillText(name, lx + 20 * S, ry + ROW_H / 2)
+    ctx.fillText(name, x1 + 3 * S, midY)
 
     // Valeur
-    ctx.font = `bold ${9 * S}px Arial, sans-serif`
-    ctx.textAlign = 'right'
-    ctx.fillText(`${total.toFixed(2)} ${unit}`, lx + W - 8 * S, ry + ROW_H / 2)
+    ctx.fillText(`${total.toFixed(2)} ${unit}`, x2 + 3 * S, midY)
   })
 
   ctx.restore()
