@@ -1,0 +1,1085 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MétréPlan — Mode d'emploi</title>
+<style>
+  :root {
+    --blue: #1e3a8a;
+    --blue-light: #3b82f6;
+    --green: #166534;
+    --green-light: #22c55e;
+    --purple: #7c3aed;
+    --purple-light: #a855f7;
+    --red: #991b1b;
+    --red-light: #ef4444;
+    --orange: #c2410c;
+    --orange-light: #f97316;
+    --yellow: #854d0e;
+    --yellow-light: #eab308;
+    --gray-900: #111827;
+    --gray-800: #1f2937;
+    --gray-700: #374151;
+    --gray-600: #4b5563;
+    --gray-400: #9ca3af;
+    --gray-200: #e5e7eb;
+    --gray-100: #f3f4f6;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background: #f8fafc;
+    color: #1e293b;
+    line-height: 1.6;
+  }
+
+  /* ── Cover ── */
+  .cover {
+    background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 50%, #1d4ed8 100%);
+    color: white;
+    padding: 60px 80px;
+    position: relative;
+    overflow: hidden;
+  }
+  .cover::after {
+    content: '';
+    position: absolute; top: -80px; right: -80px;
+    width: 400px; height: 400px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.05);
+  }
+  .cover .logo { font-size: 13px; font-weight: 600; letter-spacing: .15em; text-transform: uppercase; opacity: .7; margin-bottom: 16px; }
+  .cover h1 { font-size: 42px; font-weight: 800; margin-bottom: 8px; }
+  .cover .subtitle { font-size: 18px; opacity: .8; margin-bottom: 32px; }
+  .cover .meta { font-size: 13px; opacity: .6; }
+
+  /* ── Layout ── */
+  .container { max-width: 960px; margin: 0 auto; padding: 0 40px 80px; }
+
+  /* ── TOC ── */
+  .toc {
+    background: white;
+    border: 1px solid var(--gray-200);
+    border-radius: 12px;
+    padding: 28px 32px;
+    margin: 40px 0;
+  }
+  .toc h2 { font-size: 14px; text-transform: uppercase; letter-spacing: .12em; color: var(--gray-600); margin-bottom: 16px; }
+  .toc ol { list-style: none; counter-reset: toc; }
+  .toc ol li { counter-increment: toc; padding: 4px 0; font-size: 14px; }
+  .toc ol li::before { content: counter(toc) ". "; color: var(--blue-light); font-weight: 700; }
+  .toc a { color: #1e293b; text-decoration: none; }
+  .toc a:hover { color: var(--blue-light); }
+
+  /* ── Sections ── */
+  .section { margin-top: 56px; }
+  .section-header {
+    display: flex; align-items: center; gap: 14px;
+    border-bottom: 2px solid var(--gray-200);
+    padding-bottom: 14px; margin-bottom: 28px;
+  }
+  .section-number {
+    width: 36px; height: 36px; border-radius: 50%;
+    background: var(--blue); color: white;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 800; font-size: 15px; flex-shrink: 0;
+  }
+  h2.section-title { font-size: 26px; font-weight: 700; color: #0f172a; }
+  h3 { font-size: 17px; font-weight: 700; color: #0f172a; margin: 28px 0 12px; }
+  h4 { font-size: 14px; font-weight: 700; color: var(--gray-700); margin: 16px 0 8px; text-transform: uppercase; letter-spacing: .05em; }
+  p { margin-bottom: 12px; font-size: 15px; color: #334155; }
+
+  /* ── UI mockups ── */
+  .ui-frame {
+    background: var(--gray-900);
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 4px 24px rgba(0,0,0,0.18);
+    margin: 20px 0;
+    font-size: 13px;
+  }
+  .ui-header {
+    background: #0f172a;
+    padding: 10px 16px;
+    display: flex; align-items: center; gap: 12px;
+    border-bottom: 1px solid #374151;
+    color: white; font-size: 13px;
+  }
+  .ui-header .logo-text { font-weight: 700; color: #60a5fa; }
+  .ui-body { display: flex; }
+  .ui-sidebar {
+    width: 200px; background: var(--gray-900);
+    border-right: 1px solid #374151;
+    padding: 10px 8px; flex-shrink: 0;
+  }
+  .ui-canvas {
+    flex: 1; background: #0f172a;
+    display: flex; align-items: center; justify-content: center;
+    min-height: 200px; color: var(--gray-400); font-size: 13px;
+    padding: 20px; text-align: center;
+  }
+  .ui-panel {
+    width: 240px; background: var(--gray-800);
+    border-left: 1px solid #374151;
+    padding: 12px; flex-shrink: 0;
+  }
+  .tool-btn {
+    display: flex; align-items: center; gap: 8px;
+    padding: 7px 10px; border-radius: 8px;
+    color: #d1d5db; font-size: 12px; margin-bottom: 2px;
+    cursor: default;
+  }
+  .tool-btn.active { background: #2563eb; color: white; }
+  .tool-btn .icon { font-size: 14px; width: 18px; text-align: center; }
+  .tool-btn .label { flex: 1; }
+  .tool-btn .key {
+    font-size: 10px; padding: 1px 5px; border-radius: 3px;
+    background: #374151; color: #9ca3af;
+  }
+  .tool-btn.active .key { background: #1d4ed8; color: #bfdbfe; }
+  .section-label { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: .1em; color: var(--gray-600); padding: 6px 10px 4px; }
+  .color-grid { display: flex; flex-wrap: wrap; gap: 4px; padding: 4px 10px; }
+  .color-dot { width: 20px; height: 20px; border-radius: 5px; }
+  .unit-grid { display: flex; gap: 3px; flex-wrap: wrap; padding: 4px 10px; }
+  .unit-btn { padding: 3px 8px; border-radius: 4px; font-size: 11px; background: #374151; color: #9ca3af; }
+  .unit-btn.active { background: #2563eb; color: white; }
+  .calib-box { margin: 6px 10px; padding: 8px; border-radius: 6px; font-size: 11px; }
+  .calib-box.bad { background: rgba(239,68,68,0.15); border: 1px solid rgba(239,68,68,0.4); color: #fca5a5; }
+  .calib-box.good { background: rgba(34,197,94,0.15); border: 1px solid rgba(34,197,94,0.4); color: #86efac; }
+
+  /* ── Panel config ── */
+  .panel-box {
+    background: var(--gray-800); border-radius: 8px;
+    padding: 12px; margin: 12px 0; font-size: 13px;
+  }
+  .panel-box label { color: var(--gray-400); font-size: 11px; text-transform: uppercase; letter-spacing: .08em; display: block; margin-bottom: 6px; }
+  .panel-input {
+    background: #111827; border: 1px solid #374151; border-radius: 6px;
+    padding: 6px 10px; color: white; font-size: 13px;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .panel-input .unit-label { color: var(--gray-400); }
+
+  /* ── Callout boxes ── */
+  .callout {
+    border-radius: 8px; padding: 14px 18px;
+    margin: 16px 0; font-size: 14px; display: flex; gap: 12px;
+    align-items: flex-start;
+  }
+  .callout.tip { background: #eff6ff; border-left: 4px solid #3b82f6; color: #1e40af; }
+  .callout.warning { background: #fffbeb; border-left: 4px solid #f59e0b; color: #92400e; }
+  .callout.success { background: #f0fdf4; border-left: 4px solid #22c55e; color: #166534; }
+  .callout.info { background: #fdf4ff; border-left: 4px solid #a855f7; color: #6b21a8; }
+  .callout .icon { font-size: 18px; line-height: 1.4; flex-shrink: 0; }
+
+  /* ── Step lists ── */
+  .steps { list-style: none; margin: 12px 0 20px; }
+  .steps li {
+    display: flex; gap: 14px; margin-bottom: 12px;
+    align-items: flex-start; font-size: 14px;
+  }
+  .step-num {
+    width: 26px; height: 26px; border-radius: 50%;
+    background: var(--blue-light); color: white;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 700; font-size: 12px; flex-shrink: 0; margin-top: 1px;
+  }
+
+  /* ── Keyboard shortcuts ── */
+  kbd {
+    display: inline-flex; align-items: center; justify-content: center;
+    min-width: 28px; height: 26px;
+    background: white; border: 1px solid #d1d5db;
+    border-bottom: 3px solid #9ca3af;
+    border-radius: 5px; padding: 0 7px;
+    font-family: monospace; font-size: 12px; font-weight: 700;
+    color: #374151; margin: 0 2px;
+  }
+
+  /* ── Tool cards ── */
+  .tool-cards { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 20px 0; }
+  .tool-card {
+    background: white; border: 1px solid var(--gray-200);
+    border-radius: 10px; padding: 18px; overflow: hidden;
+    position: relative;
+  }
+  .tool-card::before {
+    content: ''; position: absolute; top: 0; left: 0;
+    width: 4px; height: 100%; border-radius: 10px 0 0 10px;
+  }
+  .tool-card.blue::before { background: #3b82f6; }
+  .tool-card.green::before { background: #22c55e; }
+  .tool-card.purple::before { background: #a855f7; }
+  .tool-card.red::before { background: #ef4444; }
+  .tool-card.yellow::before { background: #eab308; }
+  .tool-card.orange::before { background: #f97316; }
+  .tool-card-header { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+  .tool-card-icon { font-size: 20px; }
+  .tool-card-title { font-weight: 700; font-size: 15px; }
+  .tool-card-key { margin-left: auto; }
+  .tool-card p { font-size: 13px; color: #64748b; margin-bottom: 6px; }
+  .tool-card ul { font-size: 13px; color: #64748b; padding-left: 16px; }
+  .tool-card ul li { margin-bottom: 3px; }
+
+  /* ── Table ── */
+  table { width: 100%; border-collapse: collapse; font-size: 14px; margin: 16px 0; }
+  th { background: var(--gray-900); color: white; padding: 10px 14px; text-align: left; font-size: 12px; text-transform: uppercase; letter-spacing: .06em; }
+  td { padding: 9px 14px; border-bottom: 1px solid var(--gray-200); color: #334155; vertical-align: top; }
+  tr:nth-child(even) td { background: var(--gray-100); }
+
+  /* ── Shortcut table ── */
+  .shortcut-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin: 16px 0; }
+  .shortcut-row {
+    display: flex; align-items: center; gap: 12px;
+    background: white; border: 1px solid var(--gray-200);
+    border-radius: 7px; padding: 9px 14px; font-size: 13px;
+  }
+  .shortcut-row .keys { flex-shrink: 0; min-width: 90px; }
+  .shortcut-row .desc { color: #475569; }
+
+  /* ── Export cards ── */
+  .export-cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin: 16px 0; }
+  .export-card {
+    background: white; border: 1px solid var(--gray-200);
+    border-radius: 10px; padding: 20px; text-align: center;
+  }
+  .export-card .export-icon { font-size: 32px; margin-bottom: 10px; }
+  .export-card h4 { font-size: 14px; font-weight: 700; margin-bottom: 6px; text-transform: none; letter-spacing: 0; }
+  .export-card p { font-size: 12px; color: #64748b; margin: 0; }
+
+  /* ── Workflow diagram ── */
+  .workflow {
+    display: flex; align-items: center; gap: 0; margin: 20px 0;
+    overflow-x: auto; padding-bottom: 4px;
+  }
+  .workflow-step {
+    background: white; border: 1px solid var(--gray-200);
+    border-radius: 8px; padding: 12px 16px; text-align: center;
+    font-size: 13px; min-width: 130px; flex-shrink: 0;
+  }
+  .workflow-step .w-icon { font-size: 22px; margin-bottom: 6px; }
+  .workflow-step .w-label { font-weight: 600; color: #1e293b; font-size: 12px; }
+  .workflow-step .w-sub { color: var(--gray-600); font-size: 11px; margin-top: 3px; }
+  .workflow-arrow { color: #94a3b8; font-size: 20px; padding: 0 8px; flex-shrink: 0; }
+
+  /* ── Legend mockup ── */
+  .legend-table {
+    display: inline-block; border: 1px solid #6b7280;
+    background: white; font-size: 12px;
+    font-family: monospace; margin: 12px 0;
+  }
+  .legend-table .lh { background: #d1d5db; padding: 3px 8px; display: flex; gap: 0; }
+  .legend-table .lrow { display: flex; align-items: center; border-top: 1px solid #e5e7eb; }
+  .legend-table .lcol1 { width: 18px; display: flex; align-items: center; justify-content: center; padding: 2px 0; }
+  .legend-table .lcol2 { width: 100px; padding: 3px 4px; border-left: 1px solid #9ca3af; font-size: 11px; }
+  .legend-table .lcol3 { width: 70px; padding: 3px 4px; border-left: 1px solid #9ca3af; font-size: 11px; color: #374151; }
+  .legend-table .lhcol { padding: 3px 4px; font-size: 10px; font-weight: bold; color: #374151; }
+  .ldot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
+
+  @media print {
+    .cover { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .ui-frame { break-inside: avoid; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════ COVER ═══════════════════════════════ -->
+<div class="cover">
+  <div class="logo">Documentation</div>
+  <h1>MétréPlan</h1>
+  <div class="subtitle">Mode d'emploi complet — mesure, métré et export sur plans PDF</div>
+  <div class="meta">Version 1.0 &nbsp;·&nbsp; Mars 2026</div>
+</div>
+
+<div class="container">
+
+<!-- ── TOC ── -->
+<div class="toc">
+  <h2>Sommaire</h2>
+  <ol>
+    <li><a href="#interface">Interface principale</a></li>
+    <li><a href="#importer">Importer un plan PDF</a></li>
+    <li><a href="#calibration">Calibration de l'échelle</a></li>
+    <li><a href="#outils">Les outils de mesure</a></li>
+    <li><a href="#postes">Postes de métré</a></li>
+    <li><a href="#legende">Légende flottante</a></li>
+    <li><a href="#export">Export et rapports</a></li>
+    <li><a href="#raccourcis">Raccourcis clavier</a></li>
+  </ol>
+</div>
+
+<!-- ══════════════════ 1. INTERFACE ══════════════════ -->
+<div class="section" id="interface">
+  <div class="section-header">
+    <div class="section-number">1</div>
+    <h2 class="section-title">Interface principale</h2>
+  </div>
+
+  <p>MétréPlan est organisé en trois zones verticales et une barre de titre en haut.</p>
+
+  <div class="ui-frame">
+    <div class="ui-header">
+      <span style="color:#60a5fa;font-weight:800">MétréPlan</span>
+      <span style="color:#9ca3af;font-size:11px">| Nom du projet</span>
+      <span style="margin-left:auto;font-size:11px;color:#9ca3af">📂 Ouvrir &nbsp; 💾 Sauv. &nbsp; 📄 Charger &nbsp;&nbsp; ↩ ↪ &nbsp;&nbsp; ❌ Non calibré</span>
+    </div>
+    <div class="ui-body" style="min-height:220px">
+      <div class="ui-sidebar">
+        <div class="section-label">Outils</div>
+        <div class="tool-btn"><span class="icon">↖</span><span class="label">Sélection</span><span class="key">S</span></div>
+        <div class="tool-btn"><span class="icon">✋</span><span class="label">Navigation</span><span class="key">Espace</span></div>
+        <div class="tool-btn"><span class="icon">⊕</span><span class="label">Calibration</span><span class="key">C</span></div>
+        <div class="tool-btn"><span class="icon">📏</span><span class="label">Longueur</span><span class="key">1</span></div>
+        <div class="tool-btn"><span class="icon">⬜</span><span class="label">Surface</span><span class="key">2</span></div>
+        <div class="tool-btn"><span class="icon">🏢</span><span class="label">Surface mur</span><span class="key">6</span></div>
+        <div class="tool-btn"><span class="icon">➖</span><span class="label">Soustraire</span><span class="key">5</span></div>
+        <div class="tool-btn"><span class="icon">#</span><span class="label">Compteur</span><span class="key">3</span></div>
+        <div class="tool-btn"><span class="icon">🏠</span><span class="label">Toiture</span><span class="key">4</span></div>
+      </div>
+      <div class="ui-canvas">
+        <div>
+          <div style="font-size:28px;margin-bottom:8px">📐</div>
+          <div style="font-size:14px;font-weight:600;color:#d1d5db">Zone de plan</div>
+          <div style="font-size:12px;color:#6b7280;margin-top:4px">Glissez un PDF ou cliquez "Ouvrir"</div>
+        </div>
+      </div>
+      <div class="ui-panel">
+        <div style="color:#9ca3af;font-size:10px;text-transform:uppercase;letter-spacing:.1em;margin-bottom:8px">Mesures / Métré</div>
+        <div style="font-size:12px;color:#6b7280;text-align:center;padding:20px 0">Panneau droit :<br>liste des mesures<br>et postes de métré</div>
+      </div>
+    </div>
+  </div>
+
+  <table>
+    <thead><tr><th>Zone</th><th>Rôle</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Barre de titre</strong></td><td>Nom du projet, boutons ouvrir/sauver/charger, annuler/refaire, état de calibration</td></tr>
+      <tr><td><strong>Barre gauche (toolbar)</strong></td><td>Sélection de l'outil actif, choix de couleur, unité, paramètres contextuels</td></tr>
+      <tr><td><strong>Zone centrale (canvas)</strong></td><td>Affichage du plan PDF + toutes les mesures dessinées</td></tr>
+      <tr><td><strong>Panneau droit</strong></td><td>Onglet <em>Mesures</em> (liste par page) et onglet <em>Métré</em> (postes et totaux)</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- ══════════════════ 2. IMPORTER ══════════════════ -->
+<div class="section" id="importer">
+  <div class="section-header">
+    <div class="section-number">2</div>
+    <h2 class="section-title">Importer un plan PDF</h2>
+  </div>
+
+  <p>MétréPlan fonctionne directement sur vos plans au format <strong>PDF</strong>. Aucun serveur n'est nécessaire : tout se passe localement dans votre navigateur ou dans l'application.</p>
+
+  <h3>Méthodes d'import</h3>
+
+  <div class="tool-cards" style="grid-template-columns:1fr 1fr 1fr">
+    <div class="tool-card blue" style="grid-column:auto">
+      <div class="tool-card-header">
+        <span class="tool-card-icon">🖱️</span>
+        <span class="tool-card-title">Glisser-déposer</span>
+      </div>
+      <p>Faites glisser le fichier PDF directement depuis l'explorateur vers la zone centrale.</p>
+    </div>
+    <div class="tool-card blue">
+      <div class="tool-card-header">
+        <span class="tool-card-icon">📂</span>
+        <span class="tool-card-title">Bouton Ouvrir</span>
+      </div>
+      <p>Cliquez sur <strong>Ouvrir</strong> dans la barre de titre ou sur la zone d'import pour sélectionner le fichier.</p>
+    </div>
+    <div class="tool-card blue">
+      <div class="tool-card-header">
+        <span class="tool-card-icon">⌨️</span>
+        <span class="tool-card-title">Raccourci</span>
+      </div>
+      <p>Utilisez <kbd>Ctrl</kbd><kbd>O</kbd> pour ouvrir la boîte de dialogue de sélection de fichier.</p>
+    </div>
+  </div>
+
+  <h3>Navigation dans un PDF multi-pages</h3>
+  <p>Pour les plans à plusieurs pages, des boutons de navigation apparaissent dans la barre de titre :</p>
+  <div class="callout tip">
+    <span class="icon">💡</span>
+    <div><strong>&lt; &gt;</strong> Flèches gauche/droite pour changer de page. La page courante est indiquée (ex. <em>Page 2 / 5</em>). Chaque page conserve ses propres mesures et sa propre calibration.</div>
+  </div>
+
+  <h3>Navigation sur le plan</h3>
+  <div class="tool-cards" style="grid-template-columns:1fr 1fr 1fr">
+    <div class="tool-card blue">
+      <div class="tool-card-header"><span class="tool-card-icon">🔍</span><span class="tool-card-title">Zoom</span></div>
+      <p>Molette de la souris pour zoomer/dézoomer. Boutons <strong>+</strong> et <strong>−</strong> dans l'en-tête, ou <kbd>⊡</kbd> pour ajuster à l'écran.</p>
+    </div>
+    <div class="tool-card blue">
+      <div class="tool-card-header"><span class="tool-card-icon">✋</span><span class="tool-card-title">Panoramique</span></div>
+      <p>Sélectionnez l'outil <strong>Navigation</strong> ou maintenez <kbd>Espace</kbd> enfoncé pour déplacer le plan.</p>
+    </div>
+    <div class="tool-card blue">
+      <div class="tool-card-header"><span class="tool-card-icon">🖱️</span><span class="tool-card-title">Clic molette</span></div>
+      <p>Maintenez le bouton du milieu de la souris enfoncé et déplacez pour faire défiler le plan.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════ 3. CALIBRATION ══════════════════ -->
+<div class="section" id="calibration">
+  <div class="section-header">
+    <div class="section-number">3</div>
+    <h2 class="section-title">Calibration de l'échelle</h2>
+  </div>
+
+  <p>La calibration est <strong>indispensable avant toute mesure</strong>. Elle permet à MétréPlan de convertir les pixels du plan en unités réelles (m, cm, mm, ft, in). Sans calibration, le logiciel ne peut pas calculer les valeurs réelles.</p>
+
+  <div class="callout warning">
+    <span class="icon">⚠️</span>
+    <div>L'indicateur <span style="background:#7f1d1d;color:#fca5a5;padding:2px 8px;border-radius:4px;font-size:12px;font-weight:600">Non calibré</span> apparaît dans la barre de titre tant que la calibration n'est pas faite.</div>
+  </div>
+
+  <h3>Procédure de calibration</h3>
+  <ol class="steps">
+    <li>
+      <span class="step-num">1</span>
+      <div>Sélectionnez l'outil <strong>Calibration</strong> (touche <kbd>C</kbd>). Le curseur se transforme en réticule de précision rouge.</div>
+    </li>
+    <li>
+      <span class="step-num">2</span>
+      <div>Repérez sur le plan un <strong>élément dont vous connaissez la dimension réelle</strong> : une cote inscrite, une porte standard (0.9m), une longueur de façade connue, etc.</div>
+    </li>
+    <li>
+      <span class="step-num">3</span>
+      <div>Cliquez sur le <strong>premier point</strong> de cet élément (début de la cote).</div>
+    </li>
+    <li>
+      <span class="step-num">4</span>
+      <div>Cliquez sur le <strong>deuxième point</strong> (fin de la cote). Une boîte de dialogue s'ouvre.</div>
+    </li>
+    <li>
+      <span class="step-num">5</span>
+      <div>Entrez la <strong>valeur réelle</strong> de la distance que vous venez de tracer (ex. <em>5.00</em>) et choisissez l'<strong>unité</strong> (m, cm, mm, ft, in). Validez.</div>
+    </li>
+  </ol>
+
+  <div class="callout success">
+    <span class="icon">✅</span>
+    <div>Une fois calibré, l'indicateur passe au vert : <span style="background:#14532d;color:#86efac;padding:2px 8px;border-radius:4px;font-size:12px;font-weight:600">Calibrée — 1px = 0.0043 m</span>. Toutes les mesures ultérieures utiliseront ce ratio.</div>
+  </div>
+
+  <h3>Choisir l'unité de travail</h3>
+  <p>Avant de calibrer, sélectionnez l'unité souhaitée dans la toolbar (<strong>mm, cm, m, ft, in</strong>). L'unité choisie sera utilisée pour toutes les mesures. Pour les surfaces, l'unité au carré est automatiquement affichée (ex. m → m²).</p>
+
+  <div class="callout tip">
+    <span class="icon">💡</span>
+    <div><strong>Conseil :</strong> Calibrez toujours sur la distance la plus longue disponible sur le plan pour minimiser les erreurs d'arrondi. Une cote de 10 m est plus précise qu'une porte de 0.9 m.</div>
+  </div>
+</div>
+
+<!-- ══════════════════ 4. OUTILS ══════════════════ -->
+<div class="section" id="outils">
+  <div class="section-header">
+    <div class="section-number">4</div>
+    <h2 class="section-title">Les outils de mesure</h2>
+  </div>
+
+  <p>MétréPlan propose six outils de mesure, chacun accessible par un raccourci clavier ou un clic dans la toolbar.</p>
+
+  <div class="workflow">
+    <div class="workflow-step">
+      <div class="w-icon">📏</div>
+      <div class="w-label">Longueur</div>
+      <div class="w-sub">Touche 1</div>
+    </div>
+    <div class="workflow-arrow">→</div>
+    <div class="workflow-step">
+      <div class="w-icon">⬜</div>
+      <div class="w-label">Surface</div>
+      <div class="w-sub">Touche 2</div>
+    </div>
+    <div class="workflow-arrow">→</div>
+    <div class="workflow-step">
+      <div class="w-icon">🏢</div>
+      <div class="w-label">Surface mur</div>
+      <div class="w-sub">Touche 6</div>
+    </div>
+    <div class="workflow-arrow">→</div>
+    <div class="workflow-step">
+      <div class="w-icon">➖</div>
+      <div class="w-label">Soustraire</div>
+      <div class="w-sub">Touche 5</div>
+    </div>
+    <div class="workflow-arrow">→</div>
+    <div class="workflow-step">
+      <div class="w-icon">#</div>
+      <div class="w-label">Compteur</div>
+      <div class="w-sub">Touche 3</div>
+    </div>
+    <div class="workflow-arrow">→</div>
+    <div class="workflow-step">
+      <div class="w-icon">🏠</div>
+      <div class="w-label">Toiture</div>
+      <div class="w-sub">Touche 4</div>
+    </div>
+  </div>
+
+  <div class="callout tip">
+    <span class="icon">💡</span>
+    <div><strong>Principe commun à tous les outils de tracé :</strong><br>
+    • Chaque clic pose un point<br>
+    • <kbd>Double-clic</kbd> ou <kbd>Entrée</kbd> pour finaliser la mesure<br>
+    • <kbd>Échap</kbd> pour annuler la mesure en cours<br>
+    • <kbd>Suppr</kbd> ou <kbd>Backspace</kbd> pour effacer la mesure sélectionnée<br>
+    • <kbd>Ctrl</kbd><kbd>Z</kbd> / <kbd>Ctrl</kbd><kbd>Y</kbd> pour annuler/refaire</div>
+  </div>
+
+  <!-- ── 4.1 LONGUEUR ── -->
+  <h3>📏 Longueur <kbd>1</kbd></h3>
+  <p>Mesure la <strong>longueur totale d'une polyligne</strong> (une ou plusieurs droites enchaînées).</p>
+
+  <div class="ui-frame">
+    <div class="ui-body" style="min-height:160px">
+      <div class="ui-sidebar">
+        <div class="tool-btn active"><span class="icon">📏</span><span class="label">Longueur</span><span class="key">1</span></div>
+      </div>
+      <div class="ui-canvas">
+        <div style="position:relative;width:260px;height:120px;">
+          <!-- Simulated line measurement -->
+          <svg width="260" height="120" style="position:absolute;top:0;left:0">
+            <line x1="20" y1="60" x2="180" y2="60" stroke="#3b82f6" stroke-width="2" stroke-dasharray="none"/>
+            <circle cx="20" cy="60" r="4" fill="#3b82f6"/>
+            <circle cx="180" cy="60" r="4" fill="#3b82f6"/>
+            <!-- Label -->
+            <rect x="80" y="36" width="70" height="18" rx="3" fill="rgba(0,0,0,0.8)"/>
+            <text x="115" y="49" text-anchor="middle" fill="white" font-size="11" font-weight="bold">5.40 m</text>
+          </svg>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <ul class="steps">
+    <li><span class="step-num">1</span><div>Cliquez sur chaque point de passage de la ligne (coins, angles, changements de direction).</div></li>
+    <li><span class="step-num">2</span><div>Double-clic sur le dernier point ou appuyez sur <kbd>Entrée</kbd> pour valider.</div></li>
+    <li><span class="step-num">3</span><div>La longueur totale s'affiche en temps réel dans l'étiquette.</div></li>
+  </ul>
+
+  <p><strong>Résultat :</strong> Valeur en mètres linéaires (ou cm, mm, ft, in selon l'unité choisie).</p>
+
+  <!-- ── 4.2 SURFACE ── -->
+  <h3>⬜ Surface <kbd>2</kbd></h3>
+  <p>Mesure la <strong>superficie d'un polygone</strong> (sol, dalle, pièce, terrain…). Idéal pour le carrelage, les peintures sol, les terrasses.</p>
+
+  <div class="ui-frame">
+    <div class="ui-body" style="min-height:160px">
+      <div class="ui-sidebar">
+        <div class="tool-btn active" style="background:#16a34a"><span class="icon">⬜</span><span class="label">Surface</span><span class="key">2</span></div>
+      </div>
+      <div class="ui-canvas">
+        <div style="position:relative;width:260px;height:120px;">
+          <svg width="260" height="120" style="position:absolute;top:0;left:0">
+            <polygon points="30,20 210,20 210,100 30,100" stroke="#22c55e" stroke-width="2" fill="rgba(34,197,94,0.15)"/>
+            <circle cx="30" cy="20" r="4" fill="#22c55e"/>
+            <circle cx="210" cy="20" r="4" fill="#22c55e"/>
+            <circle cx="210" cy="100" r="4" fill="#22c55e"/>
+            <circle cx="30" cy="100" r="4" fill="#22c55e"/>
+            <rect x="90" y="47" width="80" height="18" rx="3" fill="rgba(0,0,0,0.8)"/>
+            <text x="130" y="60" text-anchor="middle" fill="white" font-size="11" font-weight="bold">23.45 m²</text>
+          </svg>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <ol class="steps">
+    <li><span class="step-num">1</span><div>Cliquez sur chaque sommet du polygone (vous pouvez en tracer autant que nécessaire).</div></li>
+    <li><span class="step-num">2</span><div>Quand le curseur approche du premier point (cercle blanc), une fermeture automatique se propose.</div></li>
+    <li><span class="step-num">3</span><div>Double-clic ou <kbd>Entrée</kbd> pour valider. Le polygone se ferme et la surface est calculée.</div></li>
+  </ol>
+
+  <p><strong>Résultat :</strong> Surface en m² (ou cm², mm², ft², in²). La surface est calculée comme la superficie absolue du polygone, même irrégulier.</p>
+
+  <!-- ── 4.3 SURFACE MUR ── -->
+  <h3>🏢 Surface mur <kbd>6</kbd></h3>
+  <p>Calcule la <strong>surface d'une paroi verticale</strong> en multipliant un périmètre tracé en plan par une hauteur. Parfait pour la peinture de murs, l'enduit, le plafonnage.</p>
+
+  <div class="ui-frame">
+    <div class="ui-body" style="min-height:200px">
+      <div class="ui-sidebar">
+        <div class="tool-btn active" style="background:#7c3aed"><span class="icon">🏢</span><span class="label">Surface mur</span><span class="key">6</span></div>
+        <div style="padding:10px 8px;font-size:11px;color:#9ca3af">
+          <div style="text-transform:uppercase;letter-spacing:.08em;font-size:10px;margin-bottom:6px">Surface mur</div>
+          <div style="margin-bottom:4px;color:#d1d5db">Hauteur de mur</div>
+          <div class="panel-input" style="margin-bottom:4px">
+            <span style="color:white">2,5</span>
+            <span class="unit-label">m</span>
+          </div>
+          <div style="color:#6b7280;font-size:10px">Surface = périmètre × 2.5 m</div>
+        </div>
+      </div>
+      <div class="ui-canvas">
+        <div style="position:relative;width:260px;height:140px;">
+          <svg width="260" height="140" style="position:absolute;top:0;left:0">
+            <!-- Room outline (open polyline) -->
+            <polyline points="20,20 200,20 200,120 80,120 80,70 20,70" stroke="#a855f7" stroke-width="2" stroke-dasharray="6,3" fill="none"/>
+            <circle cx="20" cy="20" r="3" fill="#a855f7"/>
+            <circle cx="200" cy="20" r="3" fill="#a855f7"/>
+            <circle cx="200" cy="120" r="3" fill="#a855f7"/>
+            <circle cx="80" cy="120" r="3" fill="#a855f7"/>
+            <circle cx="80" cy="70" r="3" fill="#a855f7"/>
+            <circle cx="20" cy="70" r="3" fill="#a855f7"/>
+            <!-- Label -->
+            <rect x="80" y="30" width="100" height="30" rx="3" fill="rgba(88,28,135,0.85)"/>
+            <text x="130" y="44" text-anchor="middle" fill="white" font-size="11" font-weight="bold">34.50 m²</text>
+            <text x="130" y="56" text-anchor="middle" fill="#d8b4fe" font-size="9">périm.×2.5</text>
+          </svg>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <h4>Configuration de la hauteur</h4>
+  <p>Dans le panneau de la toolbar (visible quand l'outil est actif) :</p>
+  <ul>
+    <li>Entrez la <strong>hauteur de mur</strong> dans le champ dédié (par défaut : 2.5 m)</li>
+    <li>La formule affichée en bas du panneau rappelle : <em>Surface = périmètre × hauteur</em></li>
+  </ul>
+
+  <ol class="steps">
+    <li><span class="step-num">1</span><div>Configurez la hauteur dans le panneau (ex. 2.5 m pour un appartement standard).</div></li>
+    <li><span class="step-num">2</span><div>Tracez le périmètre intérieur des murs en cliquant sur chaque angle.</div></li>
+    <li><span class="step-num">3</span><div>Double-clic ou <kbd>Entrée</kbd> pour valider. La surface = périmètre × hauteur est calculée.</div></li>
+  </ol>
+
+  <div class="callout info">
+    <span class="icon">💡</span>
+    <div><strong>Astuce : déduire les ouvertures</strong><br>
+    Pour retrancher les portes et fenêtres, utilisez l'outil <strong>Soustraire</strong> ou le <strong>Compteur avec dimensions</strong> après avoir mesuré la surface totale du mur. Affectez les deux mesures au même poste : la soustraction se fait automatiquement.</div>
+  </div>
+
+  <!-- ── 4.4 SOUSTRAIRE ── -->
+  <h3>➖ Soustraire <kbd>5</kbd></h3>
+  <p>Dessine un polygone dont la valeur est <strong>négative</strong>. Lorsque ce polygone est affecté à un poste, son aire est automatiquement soustraite du total de ce poste.</p>
+
+  <div class="ui-frame">
+    <div class="ui-body" style="min-height:140px">
+      <div class="ui-sidebar">
+        <div class="tool-btn active" style="background:#dc2626"><span class="icon">➖</span><span class="label">Soustraire</span><span class="key">5</span></div>
+      </div>
+      <div class="ui-canvas">
+        <div style="position:relative;width:260px;height:120px;">
+          <svg width="260" height="120" style="position:absolute;top:0;left:0">
+            <!-- Main surface -->
+            <rect x="20" y="20" width="200" height="90" stroke="#22c55e" stroke-width="1.5" fill="rgba(34,197,94,0.12)"/>
+            <!-- Subtract zone -->
+            <rect x="60" y="50" width="60" height="40" stroke="#ef4444" stroke-width="2" stroke-dasharray="8,4" fill="rgba(239,68,68,0.1)"/>
+            <circle cx="60" cy="50" r="3" fill="#ef4444"/>
+            <circle cx="120" cy="50" r="3" fill="#ef4444"/>
+            <circle cx="120" cy="90" r="3" fill="#ef4444"/>
+            <circle cx="60" cy="90" r="3" fill="#ef4444"/>
+            <!-- Label -->
+            <rect x="68" y="62" width="48" height="16" rx="3" fill="#ef4444"/>
+            <text x="92" y="74" text-anchor="middle" fill="white" font-size="10" font-weight="bold">−1.80 m²</text>
+          </svg>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <p><strong>Cas d'usage typiques :</strong></p>
+  <ul>
+    <li>Déduire une baie vitrée ou une fenêtre d'une surface de mur</li>
+    <li>Soustraire une cage d'escalier d'une surface de plancher</li>
+    <li>Retrancher un pilier ou une colonne d'une surface de sol</li>
+  </ul>
+
+  <div class="callout tip">
+    <span class="icon">💡</span>
+    <div>Affectez la déduction au <strong>même poste</strong> que la surface principale. La somme des valeurs (positives + négatives) donne automatiquement le total net dans la légende et les exports.</div>
+  </div>
+
+  <!-- ── 4.5 COMPTEUR ── -->
+  <h3># Compteur <kbd>3</kbd></h3>
+  <p>Place un <strong>marqueur ponctuel</strong> (+) sur le plan à chaque clic. Utilisé pour compter des éléments répétitifs : prises électriques, points lumineux, arbres, poteaux…</p>
+
+  <div class="ui-frame">
+    <div class="ui-body" style="min-height:220px">
+      <div class="ui-sidebar">
+        <div class="tool-btn active" style="background:#ca8a04"><span class="icon">#</span><span class="label">Compteur</span><span class="key">3</span></div>
+        <div style="padding:8px;font-size:11px;color:#9ca3af">
+          <div style="text-transform:uppercase;letter-spacing:.08em;font-size:10px;margin-bottom:6px">Compteur</div>
+          <input style="width:100%;background:#111827;border:1px solid #374151;border-radius:5px;color:white;padding:4px 8px;font-size:11px;margin-bottom:8px" value="Prise élec." readonly>
+          <div style="display:flex;flex-wrap:wrap;gap:3px;margin-bottom:10px">
+            <span style="width:14px;height:14px;border-radius:50%;background:#ef4444;display:inline-block"></span>
+            <span style="width:14px;height:14px;border-radius:50%;background:#f97316;display:inline-block"></span>
+            <span style="width:14px;height:14px;border-radius:50%;background:#3b82f6;display:inline-block;box-shadow:0 0 0 2px white"></span>
+          </div>
+          <div style="text-transform:uppercase;letter-spacing:.08em;font-size:10px;margin-bottom:4px">Dimensions ouverture</div>
+          <div style="color:#6b7280;font-size:10px;margin-bottom:6px">Laisser à 0 : simple compteur</div>
+          <div style="display:flex;gap:4px;align-items:center">
+            <input style="width:60px;background:#111827;border:1px solid #374151;border-radius:4px;color:white;padding:3px 6px;font-size:11px" value="0.90" readonly>
+            <span style="color:#6b7280">×</span>
+            <input style="width:60px;background:#111827;border:1px solid #374151;border-radius:4px;color:white;padding:3px 6px;font-size:11px" value="2.10" readonly>
+          </div>
+          <div style="color:#facc15;font-size:10px;margin-top:4px">Chaque unité = 1.890 m²</div>
+        </div>
+      </div>
+      <div class="ui-canvas">
+        <div style="position:relative;width:260px;height:130px;">
+          <svg width="260" height="130" style="position:absolute;top:0;left:0">
+            <!-- Markers -->
+            <circle cx="60" cy="40" r="9" fill="#3b82f6"/>
+            <text x="60" y="46" text-anchor="middle" fill="white" font-size="14" font-weight="bold">+</text>
+            <circle cx="140" cy="60" r="9" fill="#3b82f6"/>
+            <text x="140" y="66" text-anchor="middle" fill="white" font-size="14" font-weight="bold">+</text>
+            <circle cx="200" cy="40" r="9" fill="#3b82f6"/>
+            <text x="200" y="46" text-anchor="middle" fill="white" font-size="14" font-weight="bold">+</text>
+            <circle cx="80" cy="100" r="9" fill="#3b82f6"/>
+            <text x="80" y="106" text-anchor="middle" fill="white" font-size="14" font-weight="bold">+</text>
+            <!-- Legend -->
+            <rect x="170" y="85" width="80" height="35" rx="4" fill="rgba(0,0,0,0.7)"/>
+            <text x="210" y="100" text-anchor="middle" fill="#9ca3af" font-size="10">4 × 1.890 m²</text>
+            <text x="210" y="113" text-anchor="middle" fill="white" font-size="11" font-weight="bold">= 7.560 m²</text>
+          </svg>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <h4>Mode compteur simple</h4>
+  <p>Chaque clic ajoute un marqueur <strong>+</strong> de valeur 1. Le total du poste correspond au <strong>nombre d'éléments</strong> cliqués.</p>
+
+  <h4>Mode avec dimensions d'ouverture (porte / fenêtre)</h4>
+  <p>Renseignez une <strong>largeur</strong> et une <strong>hauteur</strong> dans le panneau. Chaque clic ajoute alors un marqueur de valeur <em>L × H</em>. Le total du poste représente la <strong>surface cumulée des ouvertures</strong>.</p>
+
+  <div class="callout info">
+    <span class="icon">🚪</span>
+    <div><strong>Exemple concret — déduire les portes d'une surface de mur :</strong><br>
+    1. Mesurez la surface totale du mur avec l'outil Surface mur → affectez au poste "Peinture" <br>
+    2. Outil Compteur → Dimensions : Largeur 0.90 m × Hauteur 2.10 m → Nom "Porte" <br>
+    3. Cliquez sur chaque porte de la pièce → affectez au poste "Peinture" également <br>
+    4. Résultat : le total du poste "Peinture" = surface mur − (nb portes × 1.89 m²)</div>
+  </div>
+
+  <!-- ── 4.6 TOITURE ── -->
+  <h3>🏠 Toiture <kbd>4</kbd></h3>
+  <p>Mesure la <strong>surface réelle d'une toiture penchée</strong> à partir de sa projection horizontale sur le plan. Un facteur de pente est appliqué automatiquement.</p>
+
+  <div class="ui-frame">
+    <div class="ui-body" style="min-height:200px">
+      <div class="ui-sidebar">
+        <div class="tool-btn active" style="background:#c2410c"><span class="icon">🏠</span><span class="label">Toiture</span><span class="key">4</span></div>
+        <div style="padding:8px;font-size:11px;color:#9ca3af">
+          <div style="text-transform:uppercase;letter-spacing:.08em;font-size:10px;margin-bottom:6px">Pente toiture</div>
+          <div style="display:flex;gap:3px;margin-bottom:6px">
+            <span style="background:#ea580c;color:white;padding:3px 8px;border-radius:4px;font-size:10px">x/12</span>
+            <span style="background:#374151;color:#9ca3af;padding:3px 8px;border-radius:4px;font-size:10px">Degrés</span>
+            <span style="background:#374151;color:#9ca3af;padding:3px 8px;border-radius:4px;font-size:10px">%</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:6px">
+            <input style="width:70px;background:#111827;border:1px solid #374151;border-radius:4px;color:white;padding:4px 8px;font-size:12px" value="4" readonly>
+            <span style="color:#9ca3af;font-size:11px">/12</span>
+          </div>
+          <div style="color:#6b7280;font-size:10px;margin-top:6px">Facteur ×1.054</div>
+        </div>
+      </div>
+      <div class="ui-canvas">
+        <div style="position:relative;width:260px;height:130px;">
+          <svg width="260" height="130" style="position:absolute;top:0;left:0">
+            <polygon points="30,20 220,20 220,110 30,110" stroke="#f97316" stroke-width="1.5" fill="rgba(249,115,22,0.15)"/>
+            <rect x="80" y="50" width="100" height="34" rx="3" fill="rgba(0,0,0,0.8)"/>
+            <text x="130" y="63" text-anchor="middle" fill="white" font-size="11" font-weight="bold">12.45 m²</text>
+            <text x="130" y="77" text-anchor="middle" fill="#fbbf24" font-size="9">pente ×1.054</text>
+          </svg>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <h4>Formats de pente supportés</h4>
+  <table>
+    <thead><tr><th>Format</th><th>Exemple</th><th>Signification</th></tr></thead>
+    <tbody>
+      <tr><td><strong>x/12</strong></td><td>4/12</td><td>Pour chaque 12 cm horizontaux, 4 cm de montée</td></tr>
+      <tr><td><strong>Degrés</strong></td><td>18°</td><td>Angle de la toiture par rapport à l'horizontale</td></tr>
+      <tr><td><strong>%</strong></td><td>33%</td><td>Pourcentage de pente (montée / course × 100)</td></tr>
+    </tbody>
+  </table>
+
+  <p>Le <strong>facteur multiplicateur</strong> calculé est affiché en temps réel dans le panneau (ex. <em>Facteur ×1.054</em>). La surface réelle = surface horizontale × facteur.</p>
+</div>
+
+<!-- ══════════════════ 5. POSTES ══════════════════ -->
+<div class="section" id="postes">
+  <div class="section-header">
+    <div class="section-number">5</div>
+    <h2 class="section-title">Postes de métré</h2>
+  </div>
+
+  <p>Les <strong>postes</strong> sont les catégories de votre métré (ex. "Carrelage sol", "Peinture murs", "Toiture"). Vous pouvez affecter chaque mesure à un poste pour que les totaux soient calculés automatiquement.</p>
+
+  <h3>Créer des postes (onglet Métré)</h3>
+  <ol class="steps">
+    <li><span class="step-num">1</span><div>Cliquez sur l'onglet <strong>Métré</strong> dans le panneau droit.</div></li>
+    <li><span class="step-num">2</span><div>Cliquez sur <strong>+ Ajouter un poste</strong> et saisissez le nom (ex. "Carrelage 60×60").</div></li>
+    <li><span class="step-num">3</span><div>Chaque poste reçoit automatiquement une <strong>couleur distincte</strong>. Vous pouvez la modifier en cliquant dessus.</div></li>
+    <li><span class="step-num">4</span><div>Pour activer un poste (toutes les nouvelles mesures lui seront automatiquement affectées), cliquez sur l'icône 🎯 à côté de son nom.</div></li>
+  </ol>
+
+  <div class="ui-frame">
+    <div class="ui-body" style="min-height:160px">
+      <div class="ui-canvas" style="flex-direction:column;align-items:stretch;padding:0">
+        <div style="padding:10px 14px;border-bottom:1px solid #374151;display:flex;gap:8px">
+          <span style="color:#9ca3af;font-size:12px;padding:4px 12px;border-radius:5px">Mesures</span>
+          <span style="color:white;font-size:12px;background:#2563eb;padding:4px 12px;border-radius:5px">Métré</span>
+        </div>
+        <div style="padding:10px 14px">
+          <!-- Poste 1 -->
+          <div style="display:flex;align-items:center;gap:8px;padding:8px;background:#1f2937;border-radius:8px;margin-bottom:6px">
+            <span style="width:12px;height:12px;border-radius:50%;background:#3b82f6;display:inline-block;flex-shrink:0"></span>
+            <span style="color:white;font-size:13px;flex:1">Carrelage sol</span>
+            <span style="color:#3b82f6;font-size:13px;font-weight:700">23.45 m²</span>
+            <span style="color:#6b7280;font-size:11px">🎯</span>
+          </div>
+          <!-- Poste 2 -->
+          <div style="display:flex;align-items:center;gap:8px;padding:8px;background:#1f2937;border-radius:8px;margin-bottom:6px">
+            <span style="width:12px;height:12px;border-radius:50%;background:#22c55e;display:inline-block;flex-shrink:0"></span>
+            <span style="color:white;font-size:13px;flex:1">Peinture murs</span>
+            <span style="color:#22c55e;font-size:13px;font-weight:700">87.20 m²</span>
+            <span style="color:#6b7280;font-size:11px">🎯</span>
+          </div>
+          <!-- Poste 3 actif -->
+          <div style="display:flex;align-items:center;gap:8px;padding:8px;background:#1e3a8a;border-radius:8px;border:1px solid #3b82f6;margin-bottom:6px">
+            <span style="width:12px;height:12px;border-radius:50%;background:#f97316;display:inline-block;flex-shrink:0"></span>
+            <span style="color:white;font-size:13px;flex:1">Toiture tuiles ✓ actif</span>
+            <span style="color:#f97316;font-size:13px;font-weight:700">56.80 m²</span>
+            <span style="color:#3b82f6;font-size:11px">🎯</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:6px;padding:6px 8px;border:1px dashed #374151;border-radius:8px;color:#6b7280;font-size:12px;cursor:default">
+            <span>＋</span><span>Ajouter un poste</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <h3>Affecter une mesure à un poste</h3>
+  <p><strong>Méthode 1 — Poste actif :</strong> Activez un poste (clic sur 🎯). Toutes les mesures créées ensuite lui sont automatiquement affectées. La toolbar affiche "Poste actif" en bas.</p>
+  <p><strong>Méthode 2 — Après coup :</strong> Dans l'onglet <em>Mesures</em>, sélectionnez une mesure dans la liste et choisissez son poste dans le menu déroulant.</p>
+
+  <h3>Couleurs sur le plan</h3>
+  <p>Quand une mesure est affectée à un poste, elle adopte automatiquement la <strong>couleur du poste</strong> sur le plan (polygone rempli, trait de la polyligne, étiquette). Cela permet d'identifier visuellement les postes d'un coup d'œil.</p>
+
+  <h3>Totaux et agrégation</h3>
+  <p>Dans l'onglet Métré, chaque poste affiche le <strong>total agrégé</strong> de toutes les mesures qui lui sont assignées, toutes pages confondues. Les valeurs negatives (Soustraire) sont déduites automatiquement.</p>
+</div>
+
+<!-- ══════════════════ 6. LÉGENDE ══════════════════ -->
+<div class="section" id="legende">
+  <div class="section-header">
+    <div class="section-number">6</div>
+    <h2 class="section-title">Légende flottante</h2>
+  </div>
+
+  <p>La légende affiche un récapitulatif des postes et de leurs totaux <strong>directement sur le plan</strong>. Elle est déplaçable et s'imprime dans l'export PDF annoté.</p>
+
+  <h3>Activer la légende</h3>
+  <p>Cliquez sur le bouton <strong>Légende</strong> dans la barre de titre (visible uniquement quand un PDF est chargé et qu'au moins une mesure existe) :</p>
+
+  <div style="background:#0f172a;border-radius:8px;padding:10px 16px;display:inline-flex;align-items:center;gap:8px;margin:12px 0;font-size:13px;color:#9ca3af">
+    <span style="background:#2563eb;color:white;border-radius:5px;padding:4px 10px;font-size:12px;font-weight:600">📋 Légende</span>
+    <span style="color:#6b7280">← bouton actif (bleu = visible)</span>
+  </div>
+
+  <div class="callout warning">
+    <span class="icon">📌</span>
+    <div>La légende est <strong>liée à la page courante</strong> au moment où vous l'activez. Elle n'apparaît que sur cette page et s'imprime uniquement sur cette page dans l'export annoté. Pour changer de page, désactivez et réactivez la légende sur la nouvelle page.</div>
+  </div>
+
+  <h3>Aspect de la légende</h3>
+  <p>Format tableau compact, style "Excel" :</p>
+
+  <div class="legend-table">
+    <div class="lh">
+      <div class="lcol1"></div>
+      <div class="lhcol" style="width:100px;border-left:1px solid #9ca3af;padding:3px 4px">Désignation</div>
+      <div class="lhcol" style="width:70px;border-left:1px solid #9ca3af;padding:3px 4px">Total</div>
+    </div>
+    <div class="lrow">
+      <div class="lcol1"><span class="ldot" style="background:#3b82f6"></span></div>
+      <div class="lcol2">Carrelage sol</div>
+      <div class="lcol3">23.45 m²</div>
+    </div>
+    <div class="lrow" style="background:#f3f4f6">
+      <div class="lcol1"><span class="ldot" style="background:#22c55e"></span></div>
+      <div class="lcol2">Peinture murs</div>
+      <div class="lcol3">87.20 m²</div>
+    </div>
+    <div class="lrow">
+      <div class="lcol1"><span class="ldot" style="background:#f97316"></span></div>
+      <div class="lcol2">Toiture tuiles</div>
+      <div class="lcol3">56.80 m²</div>
+    </div>
+  </div>
+
+  <p>Seuls les postes qui ont au moins une mesure affectée apparaissent dans la légende.</p>
+
+  <h3>Déplacer la légende</h3>
+  <p>Cliquez-glissez la légende directement sur le plan pour la repositionner. Sa position est sauvegardée avec le projet.</p>
+</div>
+
+<!-- ══════════════════ 7. EXPORT ══════════════════ -->
+<div class="section" id="export">
+  <div class="section-header">
+    <div class="section-number">7</div>
+    <h2 class="section-title">Export et rapports</h2>
+  </div>
+
+  <p>MétréPlan offre trois formats d'export, accessibles via les boutons de la barre de titre (visibles quand un PDF est chargé).</p>
+
+  <div class="export-cards">
+    <div class="export-card">
+      <div class="export-icon">📊</div>
+      <h4>Rapport PDF</h4>
+      <p>Document A4 avec tableau récapitulatif de toutes les mesures et totaux par poste. Idéal pour les devis.</p>
+    </div>
+    <div class="export-card">
+      <div class="export-icon">📁</div>
+      <h4>Export Excel</h4>
+      <p>Fichier .xlsx avec les mesures détaillées et un onglet de synthèse par poste. Pour les calculs avancés.</p>
+    </div>
+    <div class="export-card">
+      <div class="export-icon">🗺️</div>
+      <h4>Plan annoté</h4>
+      <p>PDF du plan original avec toutes les mesures et la légende imprimées dessus. Pour les chantiers.</p>
+    </div>
+  </div>
+
+  <h3>Rapport PDF (bouton 📄)</h3>
+  <p>Génère un document PDF A4 comprenant :</p>
+  <ul style="font-size:14px;color:#334155;padding-left:20px;margin-bottom:12px">
+    <li>En-tête avec le nom du projet et la date</li>
+    <li>Récapitulatif par poste avec totaux</li>
+    <li>Tableau détaillé de toutes les mesures (nom, type, page, valeur)</li>
+  </ul>
+
+  <h3>Export Excel (bouton 📊)</h3>
+  <p>Crée un fichier <strong>.xlsx</strong> avec :</p>
+  <ul style="font-size:14px;color:#334155;padding-left:20px;margin-bottom:12px">
+    <li>Un onglet <em>Récapitulatif</em> avec les totaux par poste</li>
+    <li>Un onglet <em>Détail</em> avec chaque mesure individuelle</li>
+    <li>Les mesures incluent : nom, type, page, valeur, unité, poste</li>
+  </ul>
+
+  <h3>Plan annoté (bouton 🗺️)</h3>
+  <p>Exporte le plan PDF original avec <strong>toutes les mesures dessinées par-dessus</strong> (polygones, lignes, étiquettes, compteurs, légende). Le rendu est haute résolution (×2).</p>
+
+  <div class="callout tip">
+    <span class="icon">💡</span>
+    <div>La <strong>légende</strong> apparaît uniquement sur la page où elle a été positionnée dans l'export annoté. Les mesures sont reproduites sur chaque page correspondante.</div>
+  </div>
+
+  <h3>Sauvegarde / Chargement de projet</h3>
+  <p>Le projet complet (mesures + postes + calibration + légende) peut être sauvegardé au format <strong>.mplan</strong> (fichier JSON) :</p>
+  <ul style="font-size:14px;color:#334155;padding-left:20px;margin-bottom:12px">
+    <li><strong>Sauvegarder</strong> (💾 ou <kbd>Ctrl</kbd><kbd>S</kbd>) : enregistre le fichier .mplan</li>
+    <li><strong>Charger</strong> : rouvre un fichier .mplan existant (le PDF doit être rechargé manuellement)</li>
+  </ul>
+
+  <div class="callout warning">
+    <span class="icon">⚠️</span>
+    <div>Le fichier .mplan ne contient <strong>pas</strong> le PDF (celui-ci reste sur votre poste). Lors du rechargement d'un projet, MétréPlan vous demandera de réouvrir le PDF correspondant.</div>
+  </div>
+</div>
+
+<!-- ══════════════════ 8. RACCOURCIS ══════════════════ -->
+<div class="section" id="raccourcis">
+  <div class="section-header">
+    <div class="section-number">8</div>
+    <h2 class="section-title">Raccourcis clavier</h2>
+  </div>
+
+  <h3>Outils</h3>
+  <div class="shortcut-grid">
+    <div class="shortcut-row"><span class="keys"><kbd>1</kbd></span><span class="desc">Outil Longueur</span></div>
+    <div class="shortcut-row"><span class="keys"><kbd>2</kbd></span><span class="desc">Outil Surface</span></div>
+    <div class="shortcut-row"><span class="keys"><kbd>3</kbd></span><span class="desc">Outil Compteur</span></div>
+    <div class="shortcut-row"><span class="keys"><kbd>4</kbd></span><span class="desc">Outil Toiture</span></div>
+    <div class="shortcut-row"><span class="keys"><kbd>5</kbd></span><span class="desc">Outil Soustraire</span></div>
+    <div class="shortcut-row"><span class="keys"><kbd>6</kbd></span><span class="desc">Outil Surface mur</span></div>
+    <div class="shortcut-row"><span class="keys"><kbd>C</kbd></span><span class="desc">Outil Calibration</span></div>
+    <div class="shortcut-row"><span class="keys"><kbd>S</kbd></span><span class="desc">Outil Sélection</span></div>
+    <div class="shortcut-row"><span class="keys"><kbd>Espace</kbd></span><span class="desc">Navigation (maintenir)</span></div>
+  </div>
+
+  <h3>Tracé</h3>
+  <div class="shortcut-grid">
+    <div class="shortcut-row"><span class="keys"><kbd>Double-clic</kbd></span><span class="desc">Finaliser la mesure</span></div>
+    <div class="shortcut-row"><span class="keys"><kbd>Entrée</kbd></span><span class="desc">Finaliser la mesure</span></div>
+    <div class="shortcut-row"><span class="keys"><kbd>Échap</kbd></span><span class="desc">Annuler le tracé en cours</span></div>
+    <div class="shortcut-row"><span class="keys"><kbd>Suppr</kbd></span><span class="desc">Effacer la mesure sélectionnée</span></div>
+  </div>
+
+  <h3>Général</h3>
+  <div class="shortcut-grid">
+    <div class="shortcut-row"><span class="keys"><kbd>Ctrl</kbd><kbd>Z</kbd></span><span class="desc">Annuler</span></div>
+    <div class="shortcut-row"><span class="keys"><kbd>Ctrl</kbd><kbd>Y</kbd></span><span class="desc">Refaire</span></div>
+    <div class="shortcut-row"><span class="keys"><kbd>Ctrl</kbd><kbd>S</kbd></span><span class="desc">Sauvegarder le projet</span></div>
+    <div class="shortcut-row"><span class="keys"><kbd>Ctrl</kbd><kbd>O</kbd></span><span class="desc">Ouvrir un PDF</span></div>
+    <div class="shortcut-row"><span class="keys"><kbd>Molette</kbd></span><span class="desc">Zoom in / zoom out</span></div>
+    <div class="shortcut-row"><span class="keys"><kbd>Clic molette</kbd></span><span class="desc">Panoramique libre</span></div>
+  </div>
+</div>
+
+<!-- ══════════════════ ANNEXE ══════════════════ -->
+<div class="section">
+  <div class="section-header">
+    <div class="section-number" style="background:#374151">?</div>
+    <h2 class="section-title" style="font-size:20px">Flux de travail typique</h2>
+  </div>
+
+  <div class="workflow" style="flex-wrap:wrap;gap:12px">
+    <div class="workflow-step">
+      <div class="w-icon">📂</div>
+      <div class="w-label">1. Importer PDF</div>
+      <div class="w-sub">Ouvrir le plan</div>
+    </div>
+    <div class="workflow-arrow">→</div>
+    <div class="workflow-step">
+      <div class="w-icon">⊕</div>
+      <div class="w-label">2. Calibrer</div>
+      <div class="w-sub">Touche C</div>
+    </div>
+    <div class="workflow-arrow">→</div>
+    <div class="workflow-step">
+      <div class="w-icon">🏷️</div>
+      <div class="w-label">3. Créer postes</div>
+      <div class="w-sub">Onglet Métré</div>
+    </div>
+    <div class="workflow-arrow">→</div>
+    <div class="workflow-step">
+      <div class="w-icon">📐</div>
+      <div class="w-label">4. Mesurer</div>
+      <div class="w-sub">Outils 1–6</div>
+    </div>
+    <div class="workflow-arrow">→</div>
+    <div class="workflow-step">
+      <div class="w-icon">📋</div>
+      <div class="w-label">5. Légende</div>
+      <div class="w-sub">Optionnel</div>
+    </div>
+    <div class="workflow-arrow">→</div>
+    <div class="workflow-step">
+      <div class="w-icon">📤</div>
+      <div class="w-label">6. Exporter</div>
+      <div class="w-sub">PDF / Excel / Plan</div>
+    </div>
+  </div>
+</div>
+
+<!-- Footer -->
+<div style="margin-top:60px;padding-top:24px;border-top:1px solid var(--gray-200);font-size:12px;color:#94a3b8;text-align:center">
+  MétréPlan — Documentation interne &nbsp;·&nbsp; Générée le 09/03/2026
+</div>
+
+</div><!-- /container -->
+</body>
+</html>
