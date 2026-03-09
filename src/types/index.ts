@@ -5,8 +5,8 @@ export interface Poste {
   name: string   // e.g. "Sol en carrelage 60x60"
   color: string  // visual identifier
 }
-export type MeasurementType = 'length' | 'area' | 'count' | 'roof'
-export type ToolType = 'select' | 'pan' | 'calibrate' | 'length' | 'area' | 'count' | 'roof'
+export type MeasurementType = 'length' | 'area' | 'count' | 'roof' | 'subtract'
+export type ToolType = 'select' | 'pan' | 'calibrate' | 'length' | 'area' | 'count' | 'roof' | 'subtract'
 
 export interface Point {
   x: number
@@ -40,6 +40,12 @@ export interface Measurement {
   posteId?: string
 }
 
+export interface LegendConfig {
+  x: number       // position en coordonnées PDF (scale=1)
+  y: number
+  visible: boolean
+}
+
 export interface Project {
   id: string
   name: string
@@ -49,6 +55,7 @@ export interface Project {
   measurements: Measurement[]
   postes: Poste[]
   pdfFileName: string
+  legend: LegendConfig
 }
 
 export interface PdfPageInfo {
@@ -84,4 +91,7 @@ export const TOOL_LABELS: Record<ToolType, string> = {
   area: 'Surface',
   count: 'Compteur',
   roof: 'Toiture',
+  subtract: 'Soustraire',
 }
+
+export const DEFAULT_LEGEND: LegendConfig = { x: 20, y: 20, visible: false }

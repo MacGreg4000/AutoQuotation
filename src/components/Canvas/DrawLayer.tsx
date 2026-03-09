@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useMemo } from 'react'
 import { Line, Circle, Rect, Text, Group } from 'react-konva'
 import { useProjectStore } from '@/store/useProjectStore'
 import { useToolStore } from '@/store/useToolStore'
@@ -21,9 +21,21 @@ interface DrawLayerProps {
 }
 
 const DrawLayer: React.FC<DrawLayerProps> = ({ currentPoints, calibPoints, mousePos }) => {
-  const { measurements, selectedMeasurementId, selectMeasurement, calibration, postes } = useProjectStore()
+  const { measurements, selectedMeasurementId, selectMeasurement, calibration, postes, legend, setLegend } = useProjectStore()
   const { activeTool, activeColor } = useToolStore()
   const { currentPage, zoom } = usePdfStore()
+
+  // Stats par poste pour la légende
+  const posteStats = useMemo(() => {
+    const stats: Record<string, { total: number; count: number; unit: string }> = {}
+    for (const p of postes) {
+      const assigned = measurements.filter(m => m.posteId === p.id)
+      const total = assigned.reduce((sum, m) => sum + m.value, 0)
+      const unit = assigned.find(m => m.unit)?.unit ?? '—'
+      stats[p.id] = { total, count: assigned.length, unit }
+    }
+    return stats
+  }, [postes, measurements])
 
   const renderMeasurement = (m: Measurement) => {
     if (!m.visible || m.page !== currentPage) return null
@@ -86,6 +98,22 @@ const DrawLayer: React.FC<DrawLayerProps> = ({ currentPoints, calibPoints, mouse
       )
     }
 
+    if (m.type === 'subtract') {
+      if (pts.length < 3) return null
+      const flat = [...pts.flatMap(p => [p.x, p.y]), pts[0].x, pts[0].y]
+      const c = polygonCentroid(pts)
+      const label = `${m.value.toFixed(2)} ${m.unit}`
+      const lw = label.length * 7 + 8
+      return (
+        <Group key={m.id} onClick={() => selectMeasurement(m.id)}>
+          <Line points={flat} stroke={color} strokeWidth={sw} closed
+            dash={[8, 4]} fill={color + '11'} lineCap="round" lineJoin="round" />
+          <Rect x={c.x - lw / 2} y={c.y - 14} width={lw} height={16} fill={color} cornerRadius={3} />
+          <Text x={c.x - lw / 2 + 4} y={c.y - 12} text={label} fill="white" fontSize={11} fontStyle="bold" />
+        </Group>
+      )
+    }
+
     if (m.type === 'count') {
       const p = pts[0]
       if (!p) return null
@@ -97,6 +125,49 @@ const DrawLayer: React.FC<DrawLayerProps> = ({ currentPoints, calibPoints, mouse
       )
     }
     return null
+  }
+
+  const renderLegend = () => {
+    if (!legend.visible) return null
+    const visiblePostes = postes.filter(p => posteStats[p.id]?.count > 0)
+    if (visiblePostes.length === 0) return null
+
+    const W = 185
+    const TITLE_H = 20
+    const ROW_H = 16
+    const PAD_B = 5
+    const H = TITLE_H + visiblePostes.length * ROW_H + PAD_B
+
+    return (
+      <Group
+        x={legend.x} y={legend.y}
+        draggable
+        onDragEnd={e => setLegend({ x: e.target.x(), y: e.target.y() })}
+      >
+        {/* Ombre simulée */}
+        <Rect x={3} y={3} width={W} height={H} fill="rgba(0,0,0,0.18)" cornerRadius={4} />
+        {/* Fond blanc */}
+        <Rect width={W} height={H} fill="rgba(255,255,255,0.97)" stroke="#374151" strokeWidth={0.8} cornerRadius={4} />
+        {/* Barre titre */}
+        <Rect width={W} height={TITLE_H} fill="#1e3a8a" cornerRadius={[4, 4, 0, 0] as any} />
+        <Text x={7} y={TITLE_H / 2 - 5} text="Métré récapitulatif" fill="white" fontSize={10} fontStyle="bold" />
+        {/* Lignes */}
+        {visiblePostes.map((p, i) => {
+          const s = posteStats[p.id]
+          const ry = TITLE_H + i * ROW_H
+          const isEven = i % 2 === 0
+          return (
+            <Group key={p.id} y={ry}>
+              {isEven && <Rect width={W} height={ROW_H} fill="#f9fafb" />}
+              <Circle x={12} y={ROW_H / 2} radius={4} fill={p.color} />
+              <Text x={22} y={ROW_H / 2 - 5} text={p.name} fill="#111827" fontSize={9} width={110} ellipsis />
+              <Text x={W - 8} y={ROW_H / 2 - 5} text={`${s.total.toFixed(2)} ${s.unit}`}
+                fill="#111827" fontSize={9} fontStyle="bold" align="right" width={62} />
+            </Group>
+          )
+        })}
+      </Group>
+    )
   }
 
   const renderActive = () => {
@@ -123,22 +194,23 @@ const DrawLayer: React.FC<DrawLayerProps> = ({ currentPoints, calibPoints, mouse
       )
     }
 
-    if (tool === 'area') {
+    if (tool === 'area' || tool === 'subtract') {
       const flat = preview.flatMap(p => [p.x, p.y])
       const last = preview[preview.length - 1]
       const nearFirst = mousePos && currentPoints.length > 2 && distance(mousePos, currentPoints[0]) < 15
       const pixArea = preview.length >= 3 ? polygonArea(preview) : 0
       const aLabel = calibration && pixArea > 0
-        ? `${toRealUnit(toRealUnit(pixArea, calibration), calibration).toFixed(2)} ${getAreaUnit(calibration.unit)}`
+        ? `${tool === 'subtract' ? '−' : ''}${toRealUnit(toRealUnit(pixArea, calibration), calibration).toFixed(2)} ${getAreaUnit(calibration.unit)}`
         : null
+      const previewColor = tool === 'subtract' ? '#ef4444' : activeColor
       return (
         <Group>
-          <Line points={flat} stroke={activeColor} strokeWidth={2} dash={nearFirst ? undefined : [8, 4]}
-            closed={!!nearFirst} fill={nearFirst ? activeColor + '22' : undefined} lineCap="round" />
+          <Line points={flat} stroke={previewColor} strokeWidth={2} dash={nearFirst ? undefined : [8, 4]}
+            closed={!!nearFirst} fill={nearFirst ? previewColor + '22' : undefined} lineCap="round" />
           {currentPoints.map((p, i) => (
             <Circle key={i} x={p.x} y={p.y} radius={i === 0 ? (nearFirst ? 7 : 5) : 4}
-              fill={i === 0 && nearFirst ? 'white' : activeColor}
-              stroke={i === 0 ? activeColor : undefined} strokeWidth={1} />
+              fill={i === 0 && nearFirst ? 'white' : previewColor}
+              stroke={i === 0 ? previewColor : undefined} strokeWidth={1} />
           ))}
           {last && aLabel && <>
             <Rect x={last.x + 12} y={last.y - 14} width={aLabel.length * 7 + 8} height={16} fill="rgba(0,0,0,0.85)" cornerRadius={3} />
@@ -218,6 +290,7 @@ const DrawLayer: React.FC<DrawLayerProps> = ({ currentPoints, calibPoints, mouse
       {measurements.map(renderMeasurement)}
       {renderActive()}
       {renderCalibration()}
+      {renderLegend()}
     </>
   )
 }

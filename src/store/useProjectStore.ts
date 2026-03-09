@@ -1,7 +1,7 @@
 import { create } from 'zustand'
-import type { Measurement, Calibration, HistoryEntry, Project, Poste } from '@/types'
+import type { Measurement, Calibration, HistoryEntry, Project, Poste, LegendConfig } from '@/types'
 import { nanoid } from '../lib/nanoid'
-import { MEASUREMENT_COLORS } from '@/types'
+import { MEASUREMENT_COLORS, DEFAULT_LEGEND } from '@/types'
 
 interface ProjectStore {
   projectId: string
@@ -23,6 +23,10 @@ interface ProjectStore {
   deleteMeasurement: (id: string) => void
   toggleMeasurementVisibility: (id: string) => void
   selectMeasurement: (id: string | null) => void
+  // Légende flottante
+  legend: LegendConfig
+  setLegend: (updates: Partial<LegendConfig>) => void
+  toggleLegend: () => void
   // Postes
   addPoste: (p: Poste) => void
   updatePoste: (id: string, updates: Partial<Poste>) => void
@@ -48,6 +52,7 @@ export const useProjectStore = create<ProjectStore>((set, get) => ({
   selectedMeasurementId: null,
   postes: [],
   activePosteId: null,
+  legend: { ...DEFAULT_LEGEND },
   history: [],
   historyIndex: -1,
 
@@ -86,6 +91,9 @@ export const useProjectStore = create<ProjectStore>((set, get) => ({
   },
 
   selectMeasurement: (id) => set({ selectedMeasurementId: id }),
+
+  setLegend: (updates) => set(s => ({ legend: { ...s.legend, ...updates } })),
+  toggleLegend: () => set(s => ({ legend: { ...s.legend, visible: !s.legend.visible } })),
 
   addPoste: (p) => set(s => ({ postes: [...s.postes, p] })),
 
@@ -151,6 +159,7 @@ export const useProjectStore = create<ProjectStore>((set, get) => ({
     calibration: project.calibration,
     measurements: project.measurements,
     postes: project.postes ?? [],
+    legend: project.legend ?? { ...DEFAULT_LEGEND },
     activePosteId: null,
     selectedMeasurementId: null,
     history: [],
@@ -163,6 +172,7 @@ export const useProjectStore = create<ProjectStore>((set, get) => ({
     calibration: null,
     measurements: [],
     postes: [],
+    legend: { ...DEFAULT_LEGEND },
     activePosteId: null,
     selectedMeasurementId: null,
     history: [],
@@ -170,7 +180,7 @@ export const useProjectStore = create<ProjectStore>((set, get) => ({
   }),
 
   getProject: (): Project => {
-    const { projectId, projectName, measurements, calibration, postes } = get()
+    const { projectId, projectName, measurements, calibration, postes, legend } = get()
     return {
       id: projectId,
       name: projectName,
@@ -179,6 +189,7 @@ export const useProjectStore = create<ProjectStore>((set, get) => ({
       calibration,
       measurements,
       postes,
+      legend,
       pdfFileName: '',
     }
   },

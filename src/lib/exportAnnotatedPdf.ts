@@ -131,6 +131,23 @@ function drawMeasurement(
     }
   }
 
+  if (m.type === 'subtract') {
+    if (pts.length < 3) { ctx.restore(); return }
+    ctx.beginPath()
+    ctx.moveTo(pts[0].x * s, pts[0].y * s)
+    for (let i = 1; i < pts.length; i++) ctx.lineTo(pts[i].x * s, pts[i].y * s)
+    ctx.closePath()
+    ctx.fillStyle = hexToRgba(color, 0.05)
+    ctx.fill()
+    ctx.strokeStyle = color
+    ctx.lineWidth = 2
+    ctx.setLineDash([8, 4])
+    ctx.stroke()
+    ctx.setLineDash([])
+    const c = polygonCentroid(pts)
+    drawLabel(ctx, c.x * s, c.y * s, `${m.value.toFixed(2)} ${m.unit}`, color, 'white', 10)
+  }
+
   if (m.type === 'count') {
     if (!pts[0]) { ctx.restore(); return }
     ctx.beginPath()
@@ -143,6 +160,82 @@ function drawMeasurement(
     ctx.textBaseline = 'middle'
     ctx.fillText('+', pts[0].x * s, pts[0].y * s)
   }
+
+  ctx.restore()
+}
+
+function drawExportLegend(ctx: CanvasRenderingContext2D, project: Project, posteMap: Map<string, Poste>) {
+  if (!project.legend?.visible) return
+  const visiblePostes = project.postes.filter(p =>
+    project.measurements.some(m => m.posteId === p.id)
+  )
+  if (visiblePostes.length === 0) return
+
+  const S = EXPORT_SCALE
+  const lx = project.legend.x * S
+  const ly = project.legend.y * S
+  const W = 190 * S
+  const TITLE_H = 20 * S
+  const ROW_H = 16 * S
+  const PAD_B = 6 * S
+  const H = TITLE_H + visiblePostes.length * ROW_H + PAD_B
+
+  ctx.save()
+
+  // Ombre
+  ctx.fillStyle = 'rgba(0,0,0,0.15)'
+  roundRect(ctx, lx + 3, ly + 3, W, H, 4 * S)
+  ctx.fill()
+
+  // Fond blanc
+  ctx.fillStyle = 'rgba(255,255,255,0.97)'
+  roundRect(ctx, lx, ly, W, H, 4 * S)
+  ctx.fill()
+  ctx.strokeStyle = '#374151'
+  ctx.lineWidth = 1
+  ctx.stroke()
+
+  // Barre titre
+  ctx.fillStyle = '#1e3a8a'
+  ctx.fillRect(lx, ly, W, TITLE_H)
+  ctx.fillStyle = 'white'
+  ctx.font = `bold ${10 * S}px Arial, sans-serif`
+  ctx.textAlign = 'left'
+  ctx.textBaseline = 'middle'
+  ctx.fillText('Métré récapitulatif', lx + 8 * S, ly + TITLE_H / 2)
+
+  // Lignes par poste
+  visiblePostes.forEach((p, i) => {
+    const assigned = project.measurements.filter(m => m.posteId === p.id)
+    const total = assigned.reduce((sum, m) => sum + m.value, 0)
+    const unit = assigned.find(m => m.unit)?.unit ?? '—'
+    const ry = ly + TITLE_H + i * ROW_H
+
+    if (i % 2 === 0) {
+      ctx.fillStyle = '#f9fafb'
+      ctx.fillRect(lx, ry, W, ROW_H)
+    }
+
+    // Point couleur
+    ctx.fillStyle = p.color
+    ctx.beginPath()
+    ctx.arc(lx + 10 * S, ry + ROW_H / 2, 4 * S, 0, Math.PI * 2)
+    ctx.fill()
+
+    // Nom du poste
+    ctx.fillStyle = '#111827'
+    ctx.font = `${9 * S}px Arial, sans-serif`
+    ctx.textAlign = 'left'
+    let name = p.name
+    while (ctx.measureText(name).width > 110 * S && name.length > 3) name = name.slice(0, -1)
+    if (name !== p.name) name += '…'
+    ctx.fillText(name, lx + 20 * S, ry + ROW_H / 2)
+
+    // Valeur
+    ctx.font = `bold ${9 * S}px Arial, sans-serif`
+    ctx.textAlign = 'right'
+    ctx.fillText(`${total.toFixed(2)} ${unit}`, lx + W - 8 * S, ry + ROW_H / 2)
+  })
 
   ctx.restore()
 }
@@ -189,6 +282,9 @@ export async function exportAnnotatedPdf(project: Project, pdfDoc: any): Promise
       const posteName = m.posteId ? posteMap.get(m.posteId)?.name : undefined
       drawMeasurement(ctx, m, color, posteName)
     }
+
+    // Légende flottante sur chaque page
+    drawExportLegend(ctx, project, posteMap)
 
     // Conversion canvas → image JPEG
     const imgData = canvas.toDataURL('image/jpeg', 0.92)

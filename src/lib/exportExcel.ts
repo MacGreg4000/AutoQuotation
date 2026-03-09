@@ -6,6 +6,7 @@ const TYPE_LABELS: Record<MeasurementType, string> = {
   area: 'Surface',
   count: 'Compteur',
   roof: 'Toiture',
+  subtract: 'Déduction',
 }
 
 // ── Styles helpers ────────────────────────────────────────────────────────────

@@ -4,7 +4,7 @@ import { useProjectStore } from '@/store/useProjectStore'
 import {
   ZoomIn, ZoomOut, Maximize2, ChevronLeft, ChevronRight,
   FolderOpen, Save, Download, FileText, RotateCcw, RotateCw,
-  Ruler, Layers
+  Ruler, Layers, TableProperties
 } from 'lucide-react'
 import clsx from 'clsx'
 import { exportExcel } from '@/lib/exportExcel'
@@ -14,7 +14,7 @@ import { saveProject, loadProject } from '@/lib/projectStorage'
 
 const Header: React.FC = () => {
   const { pdfDocument, currentPage, totalPages, setCurrentPage, zoom, pdfFileName } = usePdfStore()
-  const { calibration, measurements, projectName, setProjectName, canUndo, canRedo, undo, redo, getProject } = useProjectStore()
+  const { calibration, measurements, projectName, setProjectName, canUndo, canRedo, undo, redo, getProject, legend, toggleLegend } = useProjectStore()
 
   const handleZoomIn = () => window.dispatchEvent(new Event('zoom-in'))
   const handleZoomOut = () => window.dispatchEvent(new Event('zoom-out'))
@@ -163,6 +163,26 @@ const Header: React.FC = () => {
         <div className={clsx('w-1.5 h-1.5 rounded-full', calibStatus.ok ? 'bg-green-400' : 'bg-red-400')} />
         {calibStatus.label}
       </div>
+
+      {/* Légende flottante */}
+      {pdfDocument && measurements.length > 0 && (
+        <>
+          <div className="h-6 w-px bg-gray-700" />
+          <button
+            onClick={toggleLegend}
+            title={legend.visible ? 'Masquer la légende sur le plan' : 'Afficher la légende sur le plan'}
+            className={clsx(
+              'flex items-center gap-1 px-2 py-1 rounded text-xs transition-colors',
+              legend.visible
+                ? 'bg-blue-600 text-white'
+                : 'text-gray-300 hover:bg-gray-700 hover:text-white cursor-pointer'
+            )}
+          >
+            <TableProperties size={15} />
+            <span>Légende</span>
+          </button>
+        </>
+      )}
 
       {/* Export */}
       {measurements.length > 0 && (

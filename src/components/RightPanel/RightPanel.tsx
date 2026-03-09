@@ -2,7 +2,7 @@ import React, { useMemo, useState, useRef, useEffect, useCallback } from 'react'
 import { useProjectStore, nextPosteColor } from '@/store/useProjectStore'
 import { usePdfStore } from '@/store/usePdfStore'
 import type { Measurement, MeasurementType, Poste } from '@/types'
-import { Eye, EyeOff, Trash2, Ruler, Square, Hash, Home, Plus, ChevronRight, Target } from 'lucide-react'
+import { Eye, EyeOff, Trash2, Ruler, Square, Hash, Home, Plus, ChevronRight, Target, SquareMinus } from 'lucide-react'
 import clsx from 'clsx'
 import { nanoid } from '@/lib/nanoid'
 
@@ -11,6 +11,7 @@ const TYPE_ICONS: Record<MeasurementType, React.ReactNode> = {
   area: <Square size={14} />,
   count: <Hash size={14} />,
   roof: <Home size={14} />,
+  subtract: <SquareMinus size={14} />,
 }
 
 const TYPE_LABELS: Record<MeasurementType, string> = {
@@ -18,6 +19,7 @@ const TYPE_LABELS: Record<MeasurementType, string> = {
   area: 'Surface',
   count: 'Compteur',
   roof: 'Toiture',
+  subtract: 'Déduction',
 }
 
 // ─── Mesures tab ─────────────────────────────────────────────────────────────

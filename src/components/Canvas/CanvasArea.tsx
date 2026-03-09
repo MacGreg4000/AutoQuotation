@@ -144,23 +144,29 @@ const CanvasArea: React.FC = () => {
       const count = useProjectStore.getState().measurements.filter(m => m.type === "length").length + 1
       addMeasurement({ id: nanoid(), type: "length", name: "Longueur " + count, color, page: currentPage, points: final, value, unit: calibration.unit, visible: true, posteId })
     }
-    if (activeTool === "area" || activeTool === "roof") {
+    if (activeTool === "area" || activeTool === "roof" || activeTool === "subtract") {
       if (final.length < 3) { setCurrentPoints([]); return }
       const pixArea = polygonArea(final)
       const realArea = toRealUnit(toRealUnit(pixArea, calibration), calibration)
       const sf = activeTool === "roof" ? slopeToFactor(slopeValue, slopeFormat) : 1
-      const value = parseFloat((realArea * sf).toFixed(3))
       const aUnit = getAreaUnit(calibration.unit)
-      const count = useProjectStore.getState().measurements.filter(m => m.type === activeTool).length + 1
-      addMeasurement({
-        id: nanoid(), type: activeTool,
-        name: activeTool === "roof" ? "Toiture " + count : "Surface " + count,
-        color, page: currentPage, points: final, value, unit: aUnit,
-        slopeFormat: activeTool === "roof" ? slopeFormat : undefined,
-        slopeValue: activeTool === "roof" ? slopeValue : undefined,
-        slopeFactor: activeTool === "roof" ? sf : undefined,
-        visible: true, posteId,
-      })
+      if (activeTool === "subtract") {
+        const value = -parseFloat(realArea.toFixed(3))
+        const count = useProjectStore.getState().measurements.filter(m => m.type === "subtract").length + 1
+        addMeasurement({ id: nanoid(), type: "subtract", name: "Déduction " + count, color, page: currentPage, points: final, value, unit: aUnit, visible: true, posteId })
+      } else {
+        const value = parseFloat((realArea * sf).toFixed(3))
+        const count = useProjectStore.getState().measurements.filter(m => m.type === activeTool).length + 1
+        addMeasurement({
+          id: nanoid(), type: activeTool,
+          name: activeTool === "roof" ? "Toiture " + count : "Surface " + count,
+          color, page: currentPage, points: final, value, unit: aUnit,
+          slopeFormat: activeTool === "roof" ? slopeFormat : undefined,
+          slopeValue: activeTool === "roof" ? slopeValue : undefined,
+          slopeFactor: activeTool === "roof" ? sf : undefined,
+          visible: true, posteId,
+        })
+      }
     }
     setCurrentPoints([])
   }, [addMeasurement])
@@ -186,7 +192,7 @@ const CanvasArea: React.FC = () => {
         if (pts.length >= 2) finalizeMeasurement(pts)
       }
       if (!e.ctrlKey && !e.metaKey && !inInput) {
-        const map: Record<string, any> = { "1": "length", "2": "area", "3": "count", "4": "roof", "c": "calibrate", "C": "calibrate" }
+        const map: Record<string, any> = { "1": "length", "2": "area", "3": "count", "4": "roof", "5": "subtract", "c": "calibrate", "C": "calibrate" }
         if (map[e.key]) { setActiveTool(map[e.key]); setCurrentPoints([]) }
       }
     }
@@ -280,7 +286,7 @@ const CanvasArea: React.FC = () => {
       addMeasurement({ id: nanoid(), type: "count", name: counterName, color: counterColor, page: currentPage, points: [pos], value: 1, unit: "unites", visible: true, posteId: activePosteId ?? undefined })
       return
     }
-    if (["length", "area", "roof"].includes(tool)) {
+    if (["length", "area", "roof", "subtract"].includes(tool)) {
       setCurrentPoints(prev => [...prev, pos])
     }
   }, [isPanning, getStagePointerPos, addMeasurement])
@@ -329,7 +335,7 @@ const CanvasArea: React.FC = () => {
     if (isPanning) return "grabbing"
     switch (activeTool) {
       case "pan": return "grab"
-      case "calibrate": case "length": case "area": case "roof": return "crosshair"
+      case "calibrate": case "length": case "area": case "roof": case "subtract": return "crosshair"
       case "count": return "cell"
       default: return "default"
     }

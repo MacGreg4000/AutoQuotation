@@ -3,7 +3,7 @@ import { useToolStore } from '@/store/useToolStore'
 import { useProjectStore } from '@/store/useProjectStore'
 import { MEASUREMENT_COLORS } from '@/types'
 import type { ToolType, Unit } from '@/types'
-import { MousePointer2, Hand, Crosshair, Ruler, Square, Hash, Home, Target, X } from 'lucide-react'
+import { MousePointer2, Hand, Crosshair, Ruler, Square, Hash, Home, Target, X, SquareMinus } from 'lucide-react'
 import clsx from 'clsx'
 
 const TOOLS: { type: ToolType; icon: React.ReactNode; label: string; shortcut: string; color: string }[] = [
@@ -12,6 +12,7 @@ const TOOLS: { type: ToolType; icon: React.ReactNode; label: string; shortcut: s
   { type: 'calibrate', icon: <Crosshair size={18} />, label: 'Calibration', shortcut: 'C', color: 'text-red-400' },
   { type: 'length', icon: <Ruler size={18} />, label: 'Longueur', shortcut: '1', color: 'text-blue-400' },
   { type: 'area', icon: <Square size={18} />, label: 'Surface', shortcut: '2', color: 'text-green-400' },
+  { type: 'subtract', icon: <SquareMinus size={18} />, label: 'Soustraire', shortcut: '5', color: 'text-red-400' },
   { type: 'count', icon: <Hash size={18} />, label: 'Compteur', shortcut: '3', color: 'text-yellow-400' },
   { type: 'roof', icon: <Home size={18} />, label: 'Toiture', shortcut: '4', color: 'text-orange-400' },
 ]
