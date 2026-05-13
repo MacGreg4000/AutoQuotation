@@ -59,6 +59,7 @@ export interface Project {
   postes: Poste[]
   pdfFileName: string
   legend: LegendConfig
+  pageRotations: Record<number, number>
 }
 
 export interface PdfPageInfo {

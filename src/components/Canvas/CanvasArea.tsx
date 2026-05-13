@@ -38,9 +38,9 @@ const CanvasArea: React.FC = () => {
   const zoomRef = useRef(1)
   const pdfDimsRef = useRef({ width: 0, height: 0 })
 
-  const { pdfDocument, currentPage, zoom, setZoom, setPdfDocument } = usePdfStore()
+  const { pdfDocument, currentPage, zoom, setZoom, setPdfDocument, setPdfBytes } = usePdfStore()
   const { activeTool, setActiveTool } = useToolStore()
-  const { addMeasurement } = useProjectStore()
+  const { addMeasurement, pageRotations } = useProjectStore()
 
   const [currentPoints, setCurrentPoints] = useState<Point[]>([])
   const [mousePos, setMousePos] = useState<Point | null>(null)
@@ -61,10 +61,10 @@ const CanvasArea: React.FC = () => {
     return () => observer.disconnect()
   }, [])
 
-  // Reset shouldRecenter whenever a new PDF or page is loaded
+  // Reset shouldRecenter whenever a new PDF, page, or rotation changes
   useEffect(() => {
     shouldRecenterRef.current = true
-  }, [pdfDocument, currentPage])
+  }, [pdfDocument, currentPage, pageRotations])
 
   const handlePageRendered = useCallback((w: number, h: number) => {
     setPdfDims({ width: w, height: h })
@@ -120,7 +120,7 @@ const CanvasArea: React.FC = () => {
     stage.batchDraw()
   }, [setZoom])
 
-  const finalizeMeasurement = useCallback((pts: Point[]) => {
+  const finalizeMeasurement = useCallback((pts: Point[], fromDoubleClick = false) => {
     const { activeTool } = useToolStore.getState()
     const { calibration, activePosteId } = useProjectStore.getState()
     if (!calibration) {
@@ -128,7 +128,7 @@ const CanvasArea: React.FC = () => {
       setCurrentPoints([])
       return
     }
-    const final = pts.length > 1 ? pts.slice(0, -1) : pts
+    const final = fromDoubleClick && pts.length > 1 ? pts.slice(0, -1) : pts
     if (final.length < 1) { setCurrentPoints([]); return }
     const { currentPage } = usePdfStore.getState()
     const { activeColor, slopeFormat, slopeValue, wallHeight } = useToolStore.getState()
@@ -305,15 +305,17 @@ const CanvasArea: React.FC = () => {
 
   const handleStageDblClick = useCallback(() => {
     const pts = currentPointsRef.current
-    if (pts.length >= 2) finalizeMeasurement(pts)
+    if (pts.length >= 2) finalizeMeasurement(pts, true)
     else setCurrentPoints([])
   }, [finalizeMeasurement])
 
   const loadPdf = useCallback(async (file: File) => {
     try {
       const buf = await file.arrayBuffer()
-      const doc = await pdfjs.getDocument({ data: buf }).promise
+      const bytes = new Uint8Array(buf)
+      const doc = await pdfjs.getDocument({ data: bytes }).promise
       setPdfDocument(doc, file.name)
+      setPdfBytes(bytes)
       setCurrentPoints([]); setCalibPoints([])
       setZoom(1)
       const stage = stageRef.current
@@ -323,7 +325,7 @@ const CanvasArea: React.FC = () => {
       alert("Erreur lors du chargement du PDF.")
       console.error(err)
     }
-  }, [setPdfDocument, setZoom])
+  }, [setPdfDocument, setPdfBytes, setZoom])
 
   const handleDrop = useCallback((e: React.DragEvent) => {
     e.preventDefault()
