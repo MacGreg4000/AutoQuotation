@@ -48,7 +48,7 @@ const LicenseModal: React.FC = () => {
 
           <p className="text-gray-300 text-sm mb-4">
             Votre période d'essai de <span className="text-white font-semibold">30 jours</span> est
-            arrivée à expiration le <span className="text-red-400 font-semibold">31/12/2024</span>.
+            arrivée à expiration le <span className="text-red-400 font-semibold">{new Date().toLocaleDateString('fr-BE')}</span>.
             Pour continuer à utiliser MétréPlan, veuillez souscrire à une licence active.
           </p>
 
