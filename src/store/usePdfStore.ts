@@ -3,6 +3,7 @@ import type { PdfPageInfo } from '@/types'
 
 interface PdfStore {
   pdfDocument: any | null
+  pdfBytes: Uint8Array | null
   currentPage: number
   totalPages: number
   zoom: number
@@ -10,6 +11,7 @@ interface PdfStore {
   pdfFileName: string
 
   setPdfDocument: (doc: any, fileName: string) => void
+  setPdfBytes: (bytes: Uint8Array) => void
   setCurrentPage: (page: number) => void
   setZoom: (zoom: number) => void
   setPageInfo: (info: PdfPageInfo) => void
@@ -22,6 +24,7 @@ interface PdfStore {
 
 export const usePdfStore = create<PdfStore>((set, get) => ({
   pdfDocument: null,
+  pdfBytes: null,
   currentPage: 1,
   totalPages: 0,
   zoom: 1,
@@ -35,6 +38,8 @@ export const usePdfStore = create<PdfStore>((set, get) => ({
     pdfFileName: fileName,
     zoom: 1,
   }),
+
+  setPdfBytes: (bytes) => set({ pdfBytes: bytes }),
 
   setCurrentPage: (page) => {
     const { totalPages } = get()
@@ -54,6 +59,7 @@ export const usePdfStore = create<PdfStore>((set, get) => ({
 
   closePdf: () => set({
     pdfDocument: null,
+    pdfBytes: null,
     currentPage: 1,
     totalPages: 0,
     zoom: 1,

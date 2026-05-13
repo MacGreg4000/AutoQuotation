@@ -11,10 +11,18 @@ import { exportExcel } from '@/lib/exportExcel'
 import { exportPdf } from '@/lib/exportPdf'
 import { exportAnnotatedPdf } from '@/lib/exportAnnotatedPdf'
 import { saveProject, loadProject } from '@/lib/projectStorage'
+import * as pdfjs from 'pdfjs-dist'
 
 const Header: React.FC = () => {
-  const { pdfDocument, currentPage, totalPages, setCurrentPage, zoom, pdfFileName } = usePdfStore()
-  const { calibration, measurements, projectName, setProjectName, canUndo, canRedo, undo, redo, getProject, legend, toggleLegend } = useProjectStore()
+  const { pdfDocument, currentPage, totalPages, setCurrentPage, zoom, pdfFileName, pdfBytes, setPdfDocument, setPdfBytes } = usePdfStore()
+  const { calibration, measurements, projectName, setProjectName, canUndo, canRedo, undo, redo, getProject, legend, toggleLegend, pageRotations, setPageRotation } = useProjectStore()
+
+  const rotationLocked = calibration !== null || measurements.length > 0
+  const currentRotation = pageRotations[currentPage] ?? 0
+  const rotatePage = (delta: number) => {
+    const next = ((currentRotation + delta) % 360 + 360) % 360
+    setPageRotation(currentPage, next)
+  }
 
   const handleZoomIn = () => window.dispatchEvent(new Event('zoom-in'))
   const handleZoomOut = () => window.dispatchEvent(new Event('zoom-out'))
@@ -23,13 +31,17 @@ const Header: React.FC = () => {
   const buildProject = () => ({ ...getProject(), pdfFileName })
 
   const handleSave = async () => {
-    await saveProject(buildProject())
+    await saveProject(buildProject(), pdfBytes, pdfFileName || null)
   }
 
   const handleLoad = async () => {
-    const project = await loadProject()
-    if (project) {
-      useProjectStore.getState().loadProject(project)
+    const result = await loadProject()
+    if (!result) return
+    useProjectStore.getState().loadProject(result.project)
+    if (result.pdfBytes) {
+      const doc = await pdfjs.getDocument({ data: result.pdfBytes }).promise
+      setPdfDocument(doc, result.pdfFileName ?? 'document.pdf')
+      setPdfBytes(result.pdfBytes)
     }
   }
 
@@ -138,6 +150,29 @@ const Header: React.FC = () => {
             </HeaderBtn>
             <HeaderBtn onClick={handleZoomFit} title="Ajuster">
               <Maximize2 size={14} />
+            </HeaderBtn>
+          </div>
+        </>
+      )}
+
+      {/* Rotation controls */}
+      {pdfDocument && (
+        <>
+          <div className="h-6 w-px bg-gray-700" />
+          <div className="flex items-center gap-1">
+            <HeaderBtn
+              onClick={() => rotatePage(-90)}
+              disabled={rotationLocked}
+              title={rotationLocked ? "Rotation verrouillée (calibration ou mesures présentes)" : "Pivoter à gauche 90°"}
+            >
+              <RotateCcw size={15} />
+            </HeaderBtn>
+            <HeaderBtn
+              onClick={() => rotatePage(90)}
+              disabled={rotationLocked}
+              title={rotationLocked ? "Rotation verrouillée (calibration ou mesures présentes)" : "Pivoter à droite 90°"}
+            >
+              <RotateCw size={15} />
             </HeaderBtn>
           </div>
         </>

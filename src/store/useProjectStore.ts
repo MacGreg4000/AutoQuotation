@@ -12,12 +12,15 @@ interface ProjectStore {
   // Devis / bill of quantities
   postes: Poste[]
   activePosteId: string | null
+  // Rotation par page (0, 90, 180, 270)
+  pageRotations: Record<number, number>
   // History for undo/redo
   history: HistoryEntry[]
   historyIndex: number
 
   setProjectName: (name: string) => void
   setCalibration: (cal: Calibration) => void
+  setPageRotation: (page: number, rotation: number) => void
   addMeasurement: (m: Measurement) => void
   updateMeasurement: (id: string, updates: Partial<Measurement>) => void
   deleteMeasurement: (id: string) => void
@@ -52,11 +55,16 @@ export const useProjectStore = create<ProjectStore>((set, get) => ({
   selectedMeasurementId: null,
   postes: [],
   activePosteId: null,
+  pageRotations: {},
   legend: { ...DEFAULT_LEGEND },
   history: [],
   historyIndex: -1,
 
   setProjectName: (name) => set({ projectName: name }),
+
+  setPageRotation: (page, rotation) => set(s => ({
+    pageRotations: { ...s.pageRotations, [page]: rotation },
+  })),
 
   setCalibration: (cal) => {
     get().pushHistory()
@@ -160,6 +168,7 @@ export const useProjectStore = create<ProjectStore>((set, get) => ({
     measurements: project.measurements,
     postes: project.postes ?? [],
     legend: project.legend ?? { ...DEFAULT_LEGEND },
+    pageRotations: project.pageRotations ?? {},
     activePosteId: null,
     selectedMeasurementId: null,
     history: [],
@@ -173,6 +182,7 @@ export const useProjectStore = create<ProjectStore>((set, get) => ({
     measurements: [],
     postes: [],
     legend: { ...DEFAULT_LEGEND },
+    pageRotations: {},
     activePosteId: null,
     selectedMeasurementId: null,
     history: [],
@@ -180,7 +190,7 @@ export const useProjectStore = create<ProjectStore>((set, get) => ({
   }),
 
   getProject: (): Project => {
-    const { projectId, projectName, measurements, calibration, postes, legend } = get()
+    const { projectId, projectName, measurements, calibration, postes, legend, pageRotations } = get()
     return {
       id: projectId,
       name: projectName,
@@ -190,6 +200,7 @@ export const useProjectStore = create<ProjectStore>((set, get) => ({
       measurements,
       postes,
       legend,
+      pageRotations,
       pdfFileName: '',
     }
   },

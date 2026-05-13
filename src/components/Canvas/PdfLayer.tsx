@@ -1,5 +1,6 @@
 import { useEffect, useRef, useCallback } from 'react'
 import { usePdfStore } from '@/store/usePdfStore'
+import { useProjectStore } from '@/store/useProjectStore'
 
 interface UsePdfLayerOptions {
   canvasRef: React.RefObject<HTMLCanvasElement | null>
@@ -9,6 +10,7 @@ interface UsePdfLayerOptions {
 export function usePdfLayer({ canvasRef, onPageRendered }: UsePdfLayerOptions) {
   const renderTaskRef = useRef<any>(null)
   const { pdfDocument, currentPage, zoom, setPageInfo } = usePdfStore()
+  const { pageRotations } = useProjectStore()
 
   const renderPage = useCallback(async () => {
     if (!pdfDocument || !canvasRef.current) return
@@ -18,10 +20,11 @@ export function usePdfLayer({ canvasRef, onPageRendered }: UsePdfLayerOptions) {
       renderTaskRef.current = null
     }
 
+    const rotation = pageRotations[currentPage] ?? 0
     const page = await pdfDocument.getPage(currentPage)
     const dpr = window.devicePixelRatio || 1
-    const baseViewport = page.getViewport({ scale: zoom })
-    const viewport = page.getViewport({ scale: zoom * dpr })
+    const baseViewport = page.getViewport({ scale: zoom, rotation })
+    const viewport = page.getViewport({ scale: zoom * dpr, rotation })
 
     const canvas = canvasRef.current
     if (!canvas) return
@@ -45,7 +48,7 @@ export function usePdfLayer({ canvasRef, onPageRendered }: UsePdfLayerOptions) {
     } catch (e: any) {
       if (e?.name !== 'RenderingCancelledException') console.error('PDF render error:', e)
     }
-  }, [pdfDocument, currentPage, zoom, canvasRef, setPageInfo, onPageRendered])
+  }, [pdfDocument, currentPage, zoom, pageRotations, canvasRef, setPageInfo, onPageRendered])
 
   useEffect(() => {
     renderPage()
