@@ -16,11 +16,12 @@ function App() {
       )
       if ((e.ctrlKey || e.metaKey) && e.key === 's' && !inInput) {
         e.preventDefault()
+        const { pdfBytes, pdfFileName } = usePdfStore.getState()
         const project = {
           ...useProjectStore.getState().getProject(),
-          pdfFileName: usePdfStore.getState().pdfFileName,
+          pdfFileName,
         }
-        saveProject(project)
+        saveProject(project, pdfBytes, pdfFileName || null)
       }
       if ((e.ctrlKey || e.metaKey) && e.key === 'o' && !inInput) {
         e.preventDefault()
