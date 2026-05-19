@@ -14,10 +14,7 @@ const LicenseModal: React.FC = () => {
 
   const handlePay = () => {
     setLoading(true)
-    setTimeout(() => {
-      window.open('https://www.shop-comptoirdelor.be/achat-or/lingots/lingot-or-umicore-certifie-de-1000-gramme', '_blank')
-      setLoading(false)
-    }, 1500)
+    setTimeout(() => setLoading(false), 2000)
   }
 
   return (
