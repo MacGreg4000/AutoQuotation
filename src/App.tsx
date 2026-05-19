@@ -4,7 +4,6 @@ import Toolbar from './components/Toolbar/Toolbar'
 import CanvasArea from './components/Canvas/CanvasArea'
 import RightPanel from './components/RightPanel/RightPanel'
 import CalibrationModal from './components/Modals/CalibrationModal'
-import LicenseModal from './components/Modals/LicenseModal'
 import { useProjectStore } from './store/useProjectStore'
 import { saveProject } from './lib/projectStorage'
 import { usePdfStore } from './store/usePdfStore'
@@ -42,7 +41,6 @@ function App() {
         <RightPanel />
       </div>
       <CalibrationModal />
-      <LicenseModal />
     </div>
   )
 }
