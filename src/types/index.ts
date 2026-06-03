@@ -38,6 +38,9 @@ export interface Measurement {
   // Note
   note?: string
   visible: boolean
+  // Label display
+  labelOffset?: Point    // décalage depuis le point d'ancrage par défaut (coords PDF)
+  labelHidden?: boolean  // masquer l'étiquette sans supprimer la mesure
   // Devis assignment
   posteId?: string
 }
