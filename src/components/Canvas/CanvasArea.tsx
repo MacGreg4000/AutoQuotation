@@ -106,9 +106,13 @@ const CanvasArea: React.FC = () => {
     e.preventDefault()
     const stage = stageRef.current
     if (!stage) return
-    const scaleBy = 1.08
+    // Zoom proportionnel au deltaY : lisse sur trackpad, raisonnable à la molette
+    // 0.999^deltaY : chaque unité de scroll = 0.1% de zoom
+    // → molette souris (deltaY≈100) ≈ 10% par clic
+    // → trackpad (deltaY≈5 par frame) ≈ 0.5% par frame (très fluide)
+    const factor = Math.pow(0.999, e.deltaY)
     const oldZ = zoomRef.current
-    const newZ = e.deltaY < 0 ? Math.min(5, oldZ * scaleBy) : Math.max(0.1, oldZ / scaleBy)
+    const newZ = Math.max(0.1, Math.min(5, oldZ * factor))
     const pointer = stage.getPointerPosition()!
     const sp = stage.position()
     const mp = { x: (pointer.x - sp.x) / oldZ, y: (pointer.y - sp.y) / oldZ }
