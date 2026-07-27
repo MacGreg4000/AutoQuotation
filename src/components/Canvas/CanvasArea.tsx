@@ -20,7 +20,30 @@ import {
 import { nanoid } from '@/lib/nanoid'
 
 // Chemin relatif : fonctionne en web (http://) ET en Electron (file://)
-pdfjs.GlobalWorkerOptions.workerSrc = new URL('./pdf.worker.min.mjs', window.location.href).href
+const pdfWorkerUrl = new URL('./pdf.worker.min.mjs', window.location.href).href
+pdfjs.GlobalWorkerOptions.workerSrc = pdfWorkerUrl
+
+// Sous Electron (protocole file://), Chromium bloque le chargement des workers
+// de type "module" car les fichiers locaux n'ont pas de type MIME déclaré.
+// pdf.js v5+ n'a plus de worker "classique" (non-module) : on contourne le
+// problème en récupérant le code du worker et en le rechargeant via un Blob URL,
+// dont on peut forcer le type MIME text/javascript.
+let pdfWorkerReady: Promise<void> | null = null
+function ensurePdfWorkerConfigured(): Promise<void> {
+  if (pdfWorkerReady) return pdfWorkerReady
+  pdfWorkerReady = (async () => {
+    if (window.location.protocol !== 'file:') return
+    try {
+      const res = await fetch(pdfWorkerUrl)
+      const code = await res.text()
+      const blob = new Blob([code], { type: 'text/javascript' })
+      pdfjs.GlobalWorkerOptions.workerSrc = URL.createObjectURL(blob)
+    } catch (err) {
+      console.error('Impossible de charger le worker PDF.js via Blob URL, fallback sur le chemin direct:', err)
+    }
+  })()
+  return pdfWorkerReady
+}
 
 const CanvasArea: React.FC = () => {
   const containerRef = useRef<HTMLDivElement>(null)
@@ -315,6 +338,7 @@ const CanvasArea: React.FC = () => {
 
   const loadPdf = useCallback(async (file: File) => {
     try {
+      await ensurePdfWorkerConfigured()
       const buf = await file.arrayBuffer()
       const bytes = new Uint8Array(buf)
       const doc = await pdfjs.getDocument({ data: bytes }).promise
