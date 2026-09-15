@@ -86,6 +86,49 @@ app.whenReady().then(async () => {
   verifier('le canevas est dimensionné', res.canvasW > 100 && res.canvasH > 100, `${res.canvasW}×${res.canvasH}`)
   verifier('le plan est réellement dessiné', res.pixelsNonBlancs > 200, `${res.pixelsNonBlancs} pixels tracés`)
 
+  // ── Import CAO ────────────────────────────────────────────────────────────
+  // Le moteur WASM et la conversion DXF sont les points qui cassent typiquement
+  // sous file:// : Chromium y bloque les imports de modules distants.
+  const cao = await win.webContents.executeJavaScript(`(async () => {
+    const r = {};
+    // 1. Le moteur WebAssembly se charge-t-il depuis le paquet local ?
+    try {
+      const octets = await (await fetch('./wasm-dwg/dwgdxf_bg.wasm')).arrayBuffer();
+      r.wasmOctets = octets.byteLength;
+      await WebAssembly.compile(octets);
+      r.wasmCompile = true;
+    } catch (e) { r.wasmCompile = false; r.wasmErreur = String(e).slice(0, 100); }
+
+    // 2. Un DXF coté se convertit-il, avec la bonne échelle ?
+    const g = (c, v) => c + '\\n' + v + '\\n';
+    let dxf = g(0,'SECTION') + g(2,'HEADER') + g(9,'$INSUNITS') + g(70,4) + g(0,'ENDSEC');
+    dxf += g(0,'SECTION') + g(2,'ENTITIES');
+    for (const [x1,y1,x2,y2] of [[0,0,5000,0],[5000,0,5000,3000],[5000,3000,0,3000],[0,3000,0,0]])
+      dxf += g(0,'LINE') + g(8,'0') + g(10,x1) + g(20,y1) + g(30,0) + g(11,x2) + g(21,y2) + g(31,0);
+    dxf += g(0,'ENDSEC') + g(0,'EOF');
+
+    const file = new File([dxf], 'controle.dxf', { type: 'application/octet-stream' });
+    const dt = new DataTransfer(); dt.items.add(file);
+    const vrai = window.alert; window.alert = () => {};
+    const input = document.getElementById('pdf-file-input');
+    input.files = dt.files;
+    input.dispatchEvent(new Event('change', { bubbles: true }));
+    await new Promise(x => setTimeout(x, 5000));
+    window.alert = vrai;
+
+    // La pastille de calibration doit passer au vert d'elle-même : le dessin
+    // porte ses unités (mm), donc 1 pt = 1,25 mm pour un rectangle de 5000 mm.
+    r.badge = (document.body.innerText.match(/1px = [\\d.]+ \\w+/) || [''])[0];
+    r.canvas = (() => { const c = document.querySelector('canvas'); return c ? c.width + 'x' + c.height : null })();
+    return r;
+  })()`).catch(e => ({ erreur: String(e).slice(0, 120) }))
+
+  verifier('le moteur WASM se charge en file://', cao.wasmCompile === true,
+    cao.wasmCompile ? `${(cao.wasmOctets/1024).toFixed(0)} Ko compilés` : (cao.wasmErreur || cao.erreur || ''))
+
+  verifier('un DXF coté se convertit et se calibre seul', /1px = 1\.25/.test(cao.badge || ''),
+    cao.badge || 'pas de calibration automatique')
+
   // L'avertissement CSP d'Electron est consultatif (page locale), pas une erreur d'exécution.
   const bloquantes = erreursConsole.filter(m =>
     !/DevTools|Autofill|GPU stall|deprecated|Electron Security Warning/i.test(m))

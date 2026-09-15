@@ -18,6 +18,7 @@ import {
   getAreaUnit,
 } from '@/lib/geometry'
 import { nanoid } from '@/lib/nanoid'
+import { estFichierCao, convertirEnPdf } from '@/lib/cadImport'
 
 // Chemin relatif : fonctionne en web (http://) ET en Electron (file://)
 const pdfWorkerUrl = new URL('./pdf.worker.min.mjs', window.location.href).href
@@ -68,6 +69,7 @@ const CanvasArea: React.FC = () => {
   const [currentPoints, setCurrentPoints] = useState<Point[]>([])
   const [mousePos, setMousePos] = useState<Point | null>(null)
   const [calibPoints, setCalibPoints] = useState<Point[]>([])
+  const [conversionCao, setConversionCao] = useState<string | null>(null)
 
   currentPointsRef.current = currentPoints
   zoomRef.current = zoom
@@ -336,32 +338,55 @@ const CanvasArea: React.FC = () => {
     else setCurrentPoints([])
   }, [finalizeMeasurement])
 
+  const afficherPdf = useCallback(async (bytes: Uint8Array, nom: string) => {
+    await ensurePdfWorkerConfigured()
+    // ATTENTION : pdfjs.getDocument() TRANSFÈRE le buffer au worker, ce qui le
+    // détache côté principal (byteLength retombe à 0). On garde donc une copie
+    // indépendante AVANT l'appel — sans quoi le .mplan embarque un PDF vide.
+    setPdfBytes(bytes.slice())
+    const doc = await pdfjs.getDocument({ data: bytes }).promise
+    setPdfDocument(doc, nom)
+    setCurrentPoints([]); setCalibPoints([])
+    setZoom(1)
+    const stage = stageRef.current
+    if (stage) { stage.position({ x: 0, y: 0 }); stage.scale({ x: 1, y: 1 }) }
+    setStagePos({ x: 0, y: 0 })
+  }, [setPdfDocument, setPdfBytes, setZoom])
+
   const loadPdf = useCallback(async (file: File) => {
     try {
-      await ensurePdfWorkerConfigured()
-      const buf = await file.arrayBuffer()
-      const bytes = new Uint8Array(buf)
-      // ATTENTION : pdfjs.getDocument() TRANSFÈRE le buffer au worker, ce qui le
-      // détache côté principal (byteLength retombe à 0). On garde donc une copie
-      // indépendante AVANT l'appel — sans quoi le .mplan embarque un PDF vide.
-      setPdfBytes(bytes.slice())
-      const doc = await pdfjs.getDocument({ data: bytes }).promise
-      setPdfDocument(doc, file.name)
-      setCurrentPoints([]); setCalibPoints([])
-      setZoom(1)
-      const stage = stageRef.current
-      if (stage) { stage.position({ x: 0, y: 0 }); stage.scale({ x: 1, y: 1 }) }
-      setStagePos({ x: 0, y: 0 })
+      // Plan CAO : on le convertit en PDF, puis tout le reste de l'application
+      // fonctionne à l'identique.
+      if (estFichierCao(file.name)) {
+        setConversionCao(file.name)
+        try {
+          const { pdfBytes, calibration, avertissements } = await convertirEnPdf(file)
+          await afficherPdf(pdfBytes, file.name)
+          // Le dessin porte ses unités réelles : plus besoin de calibrer à la main.
+          if (calibration) useProjectStore.getState().setCalibration(calibration)
+          // La taille de page issue d'un CAO est arbitraire : on cadre le dessin
+          // entier plutôt que d'ouvrir à 100 % sur un coin.
+          setTimeout(() => window.dispatchEvent(new Event('zoom-fit')), 100)
+          if (avertissements.length) alert(avertissements.join('\n\n'))
+        } finally {
+          setConversionCao(null)
+        }
+        return
+      }
+      await afficherPdf(new Uint8Array(await file.arrayBuffer()), file.name)
     } catch (err) {
-      alert("Erreur lors du chargement du PDF.")
+      setConversionCao(null)
+      alert(estFichierCao(file.name)
+        ? "Ce fichier CAO n'a pas pu être converti.\n\n" + (err as Error).message
+        : "Erreur lors du chargement du PDF.")
       console.error(err)
     }
-  }, [setPdfDocument, setPdfBytes, setZoom])
+  }, [afficherPdf])
 
   const handleDrop = useCallback((e: React.DragEvent) => {
     e.preventDefault()
     const file = e.dataTransfer.files[0]
-    if (file?.type === "application/pdf") loadPdf(file)
+    if (file && (file.type === "application/pdf" || estFichierCao(file.name))) loadPdf(file)
   }, [loadPdf])
 
   const handleFileInput = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
@@ -395,15 +420,25 @@ const CanvasArea: React.FC = () => {
       onDrop={handleDrop}
       onDragOver={e => { e.preventDefault(); e.dataTransfer.dropEffect = "copy" }}
     >
-      <input id="pdf-file-input" type="file" accept=".pdf" className="hidden" onChange={handleFileInput} />
+      <input id="pdf-file-input" type="file" accept=".pdf,.dwg,.dxf" className="hidden" onChange={handleFileInput} />
+
+      {conversionCao && (
+        <div className="absolute inset-0 z-50 flex items-center justify-center bg-gray-950/85">
+          <div className="flex flex-col items-center gap-3">
+            <div className="w-8 h-8 border-2 border-gray-700 border-t-blue-500 rounded-full animate-spin" />
+            <p className="text-sm font-medium text-gray-200">Conversion du plan CAO…</p>
+            <p className="text-xs text-gray-500">{conversionCao}</p>
+          </div>
+        </div>
+      )}
       {!pdfDocument ? (
         <label htmlFor="pdf-file-input" className="absolute inset-0 flex items-center justify-center cursor-pointer group">
           <div className="flex flex-col items-center gap-4 p-12 border-2 border-dashed border-gray-700 rounded-2xl group-hover:border-blue-500 transition-all group-hover:bg-blue-950/20">
             <FileUp size={56} className="text-gray-600 group-hover:text-blue-400 transition-colors" />
             <div className="text-center">
-              <p className="text-xl font-semibold text-gray-300">Importer un plan PDF</p>
+              <p className="text-xl font-semibold text-gray-300">Importer un plan</p>
               <p className="text-sm text-gray-500 mt-1">Glissez-deposez ou cliquez pour selectionner</p>
-              <p className="text-xs text-gray-600 mt-2">Multi-pages • 100% local • aucun serveur</p>
+              <p className="text-xs text-gray-600 mt-2">PDF, DWG, DXF • 100% local • aucun serveur</p>
             </div>
           </div>
         </label>

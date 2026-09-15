@@ -4,7 +4,7 @@ import { useProjectStore } from '@/store/useProjectStore'
 import {
   ZoomIn, ZoomOut, Maximize2, ChevronLeft, ChevronRight,
   FolderOpen, Save, Download, FileText, RotateCcw, RotateCw,
-  Ruler, Layers, TableProperties, CircleHelp
+  Ruler, Layers, TableProperties, CircleHelp, FileDown
 } from 'lucide-react'
 import clsx from 'clsx'
 import { exportExcel } from '@/lib/exportExcel'
@@ -12,6 +12,7 @@ import { exportPdf } from '@/lib/exportPdf'
 import { exportAnnotatedPdf } from '@/lib/exportAnnotatedPdf'
 import { saveProject, loadProject } from '@/lib/projectStorage'
 import * as pdfjs from 'pdfjs-dist'
+import { estFichierCao } from '@/lib/cadImport'
 
 const Header: React.FC = () => {
   const { pdfDocument, currentPage, totalPages, setCurrentPage, zoom, pdfFileName, pdfBytes, setPdfDocument, setPdfBytes } = usePdfStore()
@@ -22,6 +23,20 @@ const Header: React.FC = () => {
   const rotatePage = (delta: number) => {
     const next = ((currentRotation + delta) % 360 + 360) % 360
     setPageRotation(currentPage, next)
+  }
+
+  // Un plan importé depuis un DWG/DXF est déjà converti en PDF en mémoire :
+  // l'enregistrer ne demande aucune reconversion.
+  const vientDuCao = estFichierCao(pdfFileName)
+  const handleExportPdfConverti = () => {
+    if (!pdfBytes || pdfBytes.byteLength === 0) return
+    const blob = new Blob([pdfBytes as BlobPart], { type: 'application/pdf' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = pdfFileName.replace(/\.(dwg|dxf)$/i, '') + '.pdf'
+    a.click()
+    setTimeout(() => URL.revokeObjectURL(url), 10_000)
   }
 
   // Le tutoriel est livré à côté de l'application : dans dist/docs pour la
@@ -113,6 +128,12 @@ const Header: React.FC = () => {
         <HeaderBtn onClick={handleLoad} title="Charger un projet .mplan">
           <FileText size={15} />
         </HeaderBtn>
+        {vientDuCao && (
+          <HeaderBtn onClick={handleExportPdfConverti} title="Enregistrer le plan converti au format PDF">
+            <FileDown size={15} />
+            <span className="text-xs">PDF</span>
+          </HeaderBtn>
+        )}
       </div>
 
       {/* Divider */}

@@ -167,7 +167,7 @@
   <!-- ─────────────────────────────────────────────────────────────── -->
   <h2 id="ouvrir"><span class="num">2</span>Ouvrir un plan</h2>
 
-  <p>Trois possibilités, au choix :</p>
+  <p>MétréPlan ouvre les <strong>PDF</strong>, mais aussi les plans CAO <strong>DWG</strong> et <strong>DXF</strong>. Trois possibilités, au choix :</p>
   <ul>
     <li>Cliquer sur <strong>Ouvrir</strong> dans la barre du haut ;</li>
     <li>Cliquer sur la grande zone pointillée au centre ;</li>
@@ -182,6 +182,26 @@
   <p>Pour naviguer : la <strong>molette</strong> zoome autour du curseur, et l'on se déplace en
   maintenant <kbd>Espace</kbd> (ou avec l'outil Navigation). Le bouton
   <strong>Ajuster</strong> recadre le plan entier.</p>
+
+  <div class="encart astuce">
+    <span class="titre">Vous avez reçu un DWG ou un DXF ?</span>
+    <p>Déposez-le comme un PDF : MétréPlan le convertit tout seul, sans AutoCAD et sans
+    rien envoyer sur Internet. La conversion prend quelques secondes.</p>
+    <p><strong>Bon à savoir : l'échelle est souvent déjà connue.</strong> Un fichier CAO
+    porte ses dimensions réelles ; quand c'est le cas, la pastille passe au vert
+    immédiatement et <em>vous n'avez pas à calibrer</em> — l'étape 3 devient inutile.
+    Si le fichier ne précise pas ses unités, l'application vous le dit et vous calibrez
+    normalement.</p>
+    <p>Un bouton <strong>PDF</strong> apparaît alors à côté d'<em>Ouvrir</em> pour
+    enregistrer le plan converti et le partager.</p>
+  </div>
+
+  <div class="encart attention">
+    <span class="titre">Vérifiez toujours une cote</span>
+    <p>La conversion CAO reste approximative : certains éléments (hachures, blocs
+    complexes, références externes) peuvent manquer. Avant de chiffrer, mesurez une cote
+    inscrite sur le plan et comparez-la à la valeur affichée.</p>
+  </div>
 
   <div class="encart astuce">
     <span class="titre">Plan mal orienté ?</span>
@@ -482,6 +502,11 @@
         <td>Un total mélange des m et des m²</td>
         <td>Deux types de mesures dans le même poste</td>
         <td>Normal : les totaux sont affichés séparément par unité</td>
+      </tr>
+      <tr>
+        <td>Un plan CAO s'ouvre incomplet</td>
+        <td>Le convertisseur ne gère pas toutes les entités</td>
+        <td>Demandez un PDF au client, ou vérifiez une cote avant de chiffrer</td>
       </tr>
       <tr>
         <td>Les étiquettes masquent le plan</td>
