@@ -1,4 +1,5 @@
-import { app, BrowserWindow, shell } from 'electron'
+import { app, BrowserWindow, Menu, shell } from 'electron'
+import { existsSync } from 'fs'
 import { fileURLToPath } from 'url'
 import { dirname, join } from 'path'
 
@@ -6,6 +7,46 @@ const __filename = fileURLToPath(import.meta.url)
 const __dirname = dirname(__filename)
 
 const isDev = process.env.NODE_ENV === 'development'
+
+/**
+ * Localise un document d'aide.
+ * En production, electron-builder le dépose dans les ressources de l'application
+ * (extraResources) ; en développement il est simplement dans docs/.
+ */
+function cheminDoc(fichier) {
+  const candidats = [
+    join(process.resourcesPath || '', 'docs', fichier),
+    join(__dirname, '..', 'docs', fichier),
+  ]
+  return candidats.find(existsSync) ?? null
+}
+
+function ouvrirDoc(fichier) {
+  const chemin = cheminDoc(fichier)
+  if (chemin) shell.openPath(chemin)
+  else shell.openExternal('https://github.com/MacGreg4000/AutoQuotation/tree/main/docs')
+}
+
+function construireMenu() {
+  const estMac = process.platform === 'darwin'
+  const template = [
+    ...(estMac ? [{ role: 'appMenu' }] : []),
+    { role: 'fileMenu' },
+    { role: 'editMenu' },
+    { role: 'viewMenu' },
+    { role: 'windowMenu' },
+    {
+      label: 'Aide',
+      submenu: [
+        { label: 'Tutoriel pas à pas', click: () => ouvrirDoc('tutoriel.html') },
+        { label: "Manuel de référence", click: () => ouvrirDoc('mode-emploi.html') },
+        { type: 'separator' },
+        { label: "Plan d'exemple", click: () => ouvrirDoc('exemple-plan.pdf') },
+      ],
+    },
+  ]
+  Menu.setApplicationMenu(Menu.buildFromTemplate(template))
+}
 
 function createWindow() {
   const win = new BrowserWindow({
@@ -43,7 +84,10 @@ function createWindow() {
   })
 }
 
-app.whenReady().then(createWindow)
+app.whenReady().then(() => {
+  construireMenu()
+  createWindow()
+})
 
 // Quitter quand toutes les fenêtres sont fermées (sauf macOS)
 app.on('window-all-closed', () => {

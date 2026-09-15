@@ -13,7 +13,8 @@
     "build:win": "npm run build && electron-builder --win",
     "build:linux": "npm run build && electron-builder --linux",
     "docs:plan": "node scripts/generer-plan-exemple.mjs",
-    "docs:captures": "electron scripts/capturer-tutoriel.mjs"
+    "docs:captures": "electron scripts/capturer-tutoriel.mjs",
+    "test:paquet": "npm run build && electron scripts/test-paquet.mjs"
   },
   "dependencies": {
     "@radix-ui/react-dialog": "^1.1.15",
@@ -58,7 +59,7 @@
   "main": "electron/main.js",
   "build": {
     "appId": "com.gregorymaccio.metreplan",
-    "productName": "MétréPlan",
+    "productName": "MetrePlan",
     "copyright": "Copyright © 2025 Gregory Maccio",
     "directories": {
       "output": "release"
@@ -66,6 +67,20 @@
     "files": [
       "dist/**/*",
       "electron/**/*"
+    ],
+    "extraResources": [
+      {
+        "from": "docs",
+        "to": "docs",
+        "filter": [
+          "**/*.html",
+          "images/**/*"
+        ]
+      },
+      {
+        "from": "public/exemple-plan.pdf",
+        "to": "docs/exemple-plan.pdf"
+      }
     ],
     "mac": {
       "target": [
@@ -77,7 +92,10 @@
         }
       ],
       "category": "public.app-category.productivity",
-      "darkModeSupport": true
+      "darkModeSupport": true,
+      "extendInfo": {
+        "CFBundleDisplayName": "MétréPlan"
+      }
     },
     "win": {
       "target": [
