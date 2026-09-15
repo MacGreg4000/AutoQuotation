@@ -11,7 +11,9 @@
     "electron:dev": "concurrently --kill-others \"vite\" \"wait-on tcp:5173 && NODE_ENV=development electron .\"",
     "build:mac": "npm run build && electron-builder --mac",
     "build:win": "npm run build && electron-builder --win",
-    "build:linux": "npm run build && electron-builder --linux"
+    "build:linux": "npm run build && electron-builder --linux",
+    "docs:plan": "node scripts/generer-plan-exemple.mjs",
+    "docs:captures": "electron scripts/capturer-tutoriel.mjs"
   },
   "dependencies": {
     "@radix-ui/react-dialog": "^1.1.15",

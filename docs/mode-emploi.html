@@ -295,6 +295,12 @@
 
 <div class="container">
 
+<div class="callout" style="margin-bottom:20px">
+  <span class="icon">📘</span>
+  <div>Vous débutez ? Commencez plutôt par le <strong><a href="tutoriel.html">tutoriel pas à pas illustré</a></strong>,
+  qui déroule un métré complet sur un plan d'exemple. Ce document-ci est le manuel de référence, à consulter au besoin.</div>
+</div>
+
 <!-- ── TOC ── -->
 <div class="toc">
   <h2>Sommaire</h2>
@@ -358,7 +364,7 @@
       <tr><td><strong>Barre de titre</strong></td><td>Nom du projet, boutons ouvrir/sauver/charger, annuler/refaire, état de calibration</td></tr>
       <tr><td><strong>Barre gauche (toolbar)</strong></td><td>Sélection de l'outil actif, choix de couleur, unité, paramètres contextuels</td></tr>
       <tr><td><strong>Zone centrale (canvas)</strong></td><td>Affichage du plan PDF + toutes les mesures dessinées</td></tr>
-      <tr><td><strong>Panneau droit</strong></td><td>Onglet <em>Mesures</em> (liste par page) et onglet <em>Métré</em> (postes et totaux)</td></tr>
+      <tr><td><strong>Panneau droit</strong></td><td>Le <em>Métré</em> : postes, totaux, et détail des mesures de chaque poste</td></tr>
     </tbody>
   </table>
 </div>
@@ -816,9 +822,9 @@
 
   <p>Les <strong>postes</strong> sont les catégories de votre métré (ex. "Carrelage sol", "Peinture murs", "Toiture"). Vous pouvez affecter chaque mesure à un poste pour que les totaux soient calculés automatiquement.</p>
 
-  <h3>Créer des postes (onglet Métré)</h3>
+  <h3>Créer des postes (panneau Métré)</h3>
   <ol class="steps">
-    <li><span class="step-num">1</span><div>Cliquez sur l'onglet <strong>Métré</strong> dans le panneau droit.</div></li>
+    <li><span class="step-num">1</span><div>Repérez le panneau <strong>Métré</strong> à droite de l'écran.</div></li>
     <li><span class="step-num">2</span><div>Cliquez sur <strong>+ Ajouter un poste</strong> et saisissez le nom (ex. "Carrelage 60×60").</div></li>
     <li><span class="step-num">3</span><div>Chaque poste reçoit automatiquement une <strong>couleur distincte</strong>. Vous pouvez la modifier en cliquant dessus.</div></li>
     <li><span class="step-num">4</span><div>Pour activer un poste (toutes les nouvelles mesures lui seront automatiquement affectées), cliquez sur l'icône 🎯 à côté de son nom.</div></li>
@@ -863,7 +869,7 @@
 
   <h3>Affecter une mesure à un poste</h3>
   <p><strong>Méthode 1 — Poste actif :</strong> Activez un poste (clic sur 🎯). Toutes les mesures créées ensuite lui sont automatiquement affectées. La toolbar affiche "Poste actif" en bas.</p>
-  <p><strong>Méthode 2 — Après coup :</strong> Dans l'onglet <em>Mesures</em>, sélectionnez une mesure dans la liste et choisissez son poste dans le menu déroulant.</p>
+  <p><strong>Méthode 2 — Après coup :</strong> Déroulez un poste (ou le bloc <em>Non assignées</em>) avec son chevron, puis choisissez le poste voulu dans le menu déroulant de la mesure. Le même menu permet de corriger une mesure rangée dans le mauvais poste, ou de l'en retirer avec <em>« — Aucun poste — »</em>.</p>
 
   <h3>Couleurs sur le plan</h3>
   <p>Quand une mesure est affectée à un poste, elle adopte automatiquement la <strong>couleur du poste</strong> sur le plan (polygone rempli, trait de la polyligne, étiquette). Cela permet d'identifier visuellement les postes d'un coup d'œil.</p>
@@ -978,15 +984,20 @@
   </div>
 
   <h3>Sauvegarde / Chargement de projet</h3>
-  <p>Le projet complet (mesures + postes + calibration + légende) peut être sauvegardé au format <strong>.mplan</strong> (fichier JSON) :</p>
+  <p>Le projet complet est sauvegardé au format <strong>.mplan</strong>, qui contient <strong>le plan PDF lui-même</strong> ainsi que les mesures, la calibration, les postes, les positions d'étiquettes, les rotations de page et la légende :</p>
   <ul style="font-size:14px;color:#334155;padding-left:20px;margin-bottom:12px">
-    <li><strong>Sauvegarder</strong> (💾 ou <kbd>Ctrl</kbd><kbd>S</kbd>) : enregistre le fichier .mplan</li>
-    <li><strong>Charger</strong> : rouvre un fichier .mplan existant (le PDF doit être rechargé manuellement)</li>
+    <li><strong>Sauvegarder</strong> (💾 ou <kbd>Ctrl</kbd><kbd>S</kbd>) : une boîte de dialogue vous laisse choisir l'emplacement du fichier .mplan</li>
+    <li><strong>Charger</strong> : rouvre un fichier .mplan — le plan et le métré reviennent ensemble, sans manipulation supplémentaire</li>
   </ul>
+
+  <div class="callout">
+    <span class="icon">💡</span>
+    <div>Un <code>.mplan</code> est autonome : vous pouvez l'archiver ou l'envoyer à un collègue sans joindre le PDF d'origine.</div>
+  </div>
 
   <div class="callout warning">
     <span class="icon">⚠️</span>
-    <div>Le fichier .mplan ne contient <strong>pas</strong> le PDF (celui-ci reste sur votre poste). Lors du rechargement d'un projet, MétréPlan vous demandera de réouvrir le PDF correspondant.</div>
+    <div>Les fichiers <code>.mplan</code> créés avec une version antérieure ne contiennent pas le plan PDF. À leur ouverture, le métré est bien restauré mais le PDF doit être rouvert manuellement ; réenregistrez ensuite le projet pour qu'il y soit intégré.</div>
   </div>
 </div>
 
@@ -1052,7 +1063,7 @@
     <div class="workflow-step">
       <div class="w-icon">🏷️</div>
       <div class="w-label">3. Créer postes</div>
-      <div class="w-sub">Onglet Métré</div>
+      <div class="w-sub">Panneau Métré</div>
     </div>
     <div class="workflow-arrow">→</div>
     <div class="workflow-step">

@@ -1,0 +1,508 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MétréPlan — Tutoriel pas à pas</title>
+<style>
+  :root {
+    --bleu: #2563eb; --bleu-clair: #eff6ff;
+    --texte: #1f2937; --gris: #6b7280; --bordure: #e5e7eb; --fond: #f9fafb;
+    --ambre: #b45309; --ambre-clair: #fffbeb;
+    --vert: #15803d; --vert-clair: #f0fdf4;
+    --rouge: #b91c1c; --rouge-clair: #fef2f2;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; padding: 0; background: var(--fond); color: var(--texte);
+    font: 16px/1.65 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  }
+  .page { max-width: 980px; margin: 0 auto; padding: 0 24px 80px; }
+
+  header.hero {
+    background: linear-gradient(135deg, #1e3a8a, #2563eb);
+    color: #fff; padding: 56px 24px 48px; margin-bottom: 40px;
+  }
+  header.hero .inner { max-width: 980px; margin: 0 auto; }
+  header.hero h1 { margin: 0 0 8px; font-size: 40px; letter-spacing: -.5px; }
+  header.hero p { margin: 0; font-size: 18px; opacity: .9; }
+  header.hero .meta { margin-top: 20px; font-size: 14px; opacity: .75; }
+
+  h2 {
+    margin: 56px 0 4px; font-size: 26px; letter-spacing: -.3px;
+    padding-bottom: 10px; border-bottom: 2px solid var(--bordure);
+  }
+  h2 .num {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 34px; height: 34px; border-radius: 10px; margin-right: 12px;
+    background: var(--bleu); color: #fff; font-size: 17px; vertical-align: 2px;
+  }
+  h3 { margin: 32px 0 8px; font-size: 19px; }
+  p { margin: 12px 0; }
+  ul, ol { margin: 12px 0; padding-left: 26px; }
+  li { margin: 6px 0; }
+  code {
+    background: #eef2f7; padding: 2px 6px; border-radius: 5px;
+    font: 14px/1 ui-monospace, SFMono-Regular, Menlo, monospace;
+  }
+  kbd {
+    background: #fff; border: 1px solid #cbd5e1; border-bottom-width: 2px;
+    border-radius: 6px; padding: 2px 7px; font-size: 13px; font-family: inherit;
+    box-shadow: 0 1px 0 rgba(0,0,0,.04); white-space: nowrap;
+  }
+
+  figure { margin: 22px 0; }
+  figure img {
+    width: 100%; display: block; border: 1px solid var(--bordure);
+    border-radius: 10px; box-shadow: 0 4px 16px rgba(15,23,42,.10);
+  }
+  figure.etroite img { max-width: 340px; margin: 0 auto; }
+  figure.bandeau img { box-shadow: none; }
+  figcaption { margin-top: 8px; font-size: 14px; color: var(--gris); text-align: center; }
+
+  .encart { border-left: 4px solid; border-radius: 8px; padding: 14px 18px; margin: 22px 0; }
+  .encart p:first-child { margin-top: 0; } .encart p:last-child { margin-bottom: 0; }
+  .astuce { border-color: var(--bleu); background: var(--bleu-clair); }
+  .attention { border-color: var(--ambre); background: var(--ambre-clair); }
+  .important { border-color: var(--rouge); background: var(--rouge-clair); }
+  .ok { border-color: var(--vert); background: var(--vert-clair); }
+  .encart .titre { font-weight: 700; display: block; margin-bottom: 4px; }
+
+  table { border-collapse: collapse; width: 100%; margin: 20px 0; font-size: 15px; }
+  th, td { text-align: left; padding: 9px 12px; border-bottom: 1px solid var(--bordure); }
+  th { background: #f1f5f9; font-size: 13px; text-transform: uppercase; letter-spacing: .4px; color: #475569; }
+  td code { white-space: nowrap; }
+
+  .sommaire { background: #fff; border: 1px solid var(--bordure); border-radius: 12px; padding: 20px 26px; }
+  .sommaire h2 { margin: 0 0 10px; font-size: 18px; border: 0; padding: 0; }
+  .sommaire ol { columns: 2; column-gap: 36px; margin: 0; }
+  .sommaire a { color: var(--bleu); text-decoration: none; }
+  .sommaire a:hover { text-decoration: underline; }
+
+  .etapes { counter-reset: puce; list-style: none; padding-left: 0; }
+  .etapes > li { position: relative; padding-left: 40px; margin: 14px 0; }
+  .etapes > li::before {
+    counter-increment: puce; content: counter(puce);
+    position: absolute; left: 0; top: 1px; width: 26px; height: 26px;
+    background: var(--bleu); color: #fff; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 600;
+  }
+
+  footer { margin-top: 64px; padding-top: 20px; border-top: 1px solid var(--bordure); color: var(--gris); font-size: 14px; }
+
+  @media print {
+    body { background: #fff; }
+    header.hero { background: #1e3a8a !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    h2 { page-break-after: avoid; } figure { page-break-inside: avoid; }
+    .encart { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  }
+  @media (max-width: 700px) { .sommaire ol { columns: 1; } header.hero h1 { font-size: 30px; } }
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <div class="inner">
+    <h1>MétréPlan — Tutoriel pas à pas</h1>
+    <p>Du plan PDF au métré chiffré, en suivant un exemple complet.</p>
+    <div class="meta">Toutes les captures de ce document proviennent de l'application réelle.</div>
+  </div>
+</header>
+
+<div class="page">
+
+  <div class="sommaire">
+    <h2>Sommaire</h2>
+    <ol>
+      <li><a href="#decouverte">Découvrir l'interface</a></li>
+      <li><a href="#ouvrir">Ouvrir un plan</a></li>
+      <li><a href="#calibrer">Calibrer l'échelle</a></li>
+      <li><a href="#postes">Créer les postes</a></li>
+      <li><a href="#mesurer">Mesurer</a></li>
+      <li><a href="#verifier">Vérifier et corriger</a></li>
+      <li><a href="#etiquettes">Ajuster les étiquettes</a></li>
+      <li><a href="#legende">Poser la légende</a></li>
+      <li><a href="#enregistrer">Enregistrer le projet</a></li>
+      <li><a href="#exporter">Exporter le métré</a></li>
+      <li><a href="#raccourcis">Raccourcis clavier</a></li>
+      <li><a href="#pieges">Pièges fréquents</a></li>
+    </ol>
+  </div>
+
+  <div class="encart astuce">
+    <span class="titre">Suivez l'exemple en même temps</span>
+    <p>Ce tutoriel utilise un plan fictif livré avec l'application :
+    <strong>exemple-plan.pdf</strong> (un appartement de 70 m²). Vous le trouverez à la racine du
+    dossier de l'application, ou dans <code>public/exemple-plan.pdf</code>. Ouvrez-le et refaites
+    chaque étape : vous devez retrouver exactement les mêmes chiffres.</p>
+  </div>
+
+  <!-- ─────────────────────────────────────────────────────────────── -->
+  <h2 id="decouverte"><span class="num">1</span>Découvrir l'interface</h2>
+
+  <p>L'écran se divise en trois zones, toujours les mêmes :</p>
+
+  <figure>
+    <img src="images/01-interface.png" alt="Interface de MétréPlan au démarrage">
+    <figcaption>L'application au démarrage, avant tout import.</figcaption>
+  </figure>
+
+  <ul>
+    <li><strong>À gauche — la boîte à outils.</strong> Les outils de mesure, la couleur et l'unité de travail.</li>
+    <li><strong>Au centre — le plan.</strong> C'est là que vous dessinez vos mesures.</li>
+    <li><strong>À droite — le métré.</strong> Vos postes, leurs totaux, et le récapitulatif du devis.</li>
+  </ul>
+
+  <p>La barre du haut regroupe l'ouverture, l'enregistrement, la navigation entre les pages,
+  le zoom, la rotation et les exports.</p>
+
+  <figure class="bandeau">
+    <img src="images/12-entete.png" alt="Barre d'en-tête de MétréPlan">
+    <figcaption>La barre du haut, une fois un plan chargé et l'échelle calibrée (pastille verte à droite).</figcaption>
+  </figure>
+
+  <!-- ─────────────────────────────────────────────────────────────── -->
+  <h2 id="ouvrir"><span class="num">2</span>Ouvrir un plan</h2>
+
+  <p>Trois possibilités, au choix :</p>
+  <ul>
+    <li>Cliquer sur <strong>Ouvrir</strong> dans la barre du haut ;</li>
+    <li>Cliquer sur la grande zone pointillée au centre ;</li>
+    <li>Glisser-déposer le fichier PDF directement sur la fenêtre.</li>
+  </ul>
+
+  <figure>
+    <img src="images/02-plan-importe.png" alt="Le plan d'exemple après import">
+    <figcaption>Le plan est affiché. La pastille rouge « Non calibré » rappelle qu'il reste une étape.</figcaption>
+  </figure>
+
+  <p>Pour naviguer : la <strong>molette</strong> zoome autour du curseur, et l'on se déplace en
+  maintenant <kbd>Espace</kbd> (ou avec l'outil Navigation). Le bouton
+  <strong>Ajuster</strong> recadre le plan entier.</p>
+
+  <div class="encart astuce">
+    <span class="titre">Plan mal orienté ?</span>
+    <p>Les deux boutons de rotation de la barre du haut font pivoter la page de 90°.
+    Faites-le <strong>avant</strong> de calibrer : dès qu'une échelle ou une mesure existe,
+    la rotation se verrouille pour ne pas fausser les mesures déjà prises.</p>
+  </div>
+
+  <!-- ─────────────────────────────────────────────────────────────── -->
+  <h2 id="calibrer"><span class="num">3</span>Calibrer l'échelle</h2>
+
+  <div class="encart important">
+    <span class="titre">L'étape à ne pas rater</span>
+    <p>Sans calibration, l'application ne connaît que des pixels : aucune mesure n'est possible.
+    Et si la calibration est fausse, <em>tout le métré est faux</em>. Prenez trente secondes ici,
+    elles évitent de tout recommencer.</p>
+  </div>
+
+  <p>Le principe : vous montrez à l'application une distance dont vous connaissez la valeur réelle.</p>
+
+  <ol class="etapes">
+    <li>Activez l'outil <strong>Calibration</strong> (ou tapez <kbd>C</kbd>).</li>
+    <li>Cliquez sur le <strong>premier point</strong> d'une cote connue du plan.</li>
+    <li>Cliquez sur le <strong>second point</strong>. Une fenêtre s'ouvre.</li>
+    <li>Saisissez la <strong>distance réelle</strong>, choisissez l'unité, validez.</li>
+  </ol>
+
+  <figure>
+    <img src="images/03-calibration-fenetre.png" alt="Fenêtre de calibration de l'échelle">
+    <figcaption>Sur le plan d'exemple, on clique aux deux extrémités de la cote « 5.00 m » du bas.</figcaption>
+  </figure>
+
+  <p>La fenêtre affiche la distance mesurée à l'écran (ici 283,5 px), vous saisissez
+  la distance réelle (5,00 m) et le <strong>ratio calculé</strong> s'affiche immédiatement.</p>
+
+  <figure>
+    <img src="images/04-echelle-calibree.png" alt="Échelle calibrée, pastille verte">
+    <figcaption>La pastille passe au vert : l'échelle est connue, vous pouvez mesurer.</figcaption>
+  </figure>
+
+  <div class="encart astuce">
+    <span class="titre">Choisir la bonne cote</span>
+    <p>Prenez la <strong>plus longue</strong> cote disponible : plus la référence est longue,
+    plus l'erreur de clic devient négligeable. Calibrer sur 10 m est bien plus précis que sur 50 cm.
+    Zoomez avant de cliquer, le réticule est précis au pixel.</p>
+  </div>
+
+  <!-- ─────────────────────────────────────────────────────────────── -->
+  <h2 id="postes"><span class="num">4</span>Créer les postes</h2>
+
+  <p>Un <strong>poste</strong> est une ligne de votre devis : « Sol carrelage 60x60 »,
+  « Plinthes », « Faïence murale »… Toutes les mesures rattachées à un poste s'additionnent
+  automatiquement.</p>
+
+  <ol class="etapes">
+    <li>Cliquez sur <strong>+ Nouveau poste</strong> dans le panneau de droite.</li>
+    <li><strong>Double-cliquez</strong> sur son nom pour le renommer.</li>
+    <li>Cliquez sur sa <strong>pastille de couleur</strong> pour l'activer.</li>
+  </ol>
+
+  <figure>
+    <img src="images/05-poste-actif.png" alt="Un poste actif dans le panneau Métré">
+    <figcaption>Le poste actif est encadré en bleu : les prochaines mesures y seront rangées.</figcaption>
+  </figure>
+
+  <div class="encart attention">
+    <span class="titre">Activez le poste avant de mesurer</span>
+    <p>Une mesure prise sans poste actif n'est rattachée à rien. Elle reste visible dans le bloc
+    orange <strong>« Non assignées »</strong>, mais elle ne compte dans aucun total de devis.
+    Rien n'est perdu : vous pourrez l'assigner après coup (voir l'étape 6).</p>
+  </div>
+
+  <!-- ─────────────────────────────────────────────────────────────── -->
+  <h2 id="mesurer"><span class="num">5</span>Mesurer</h2>
+
+  <p>Le principe est le même pour tous les outils : on <strong>clique</strong> chaque point,
+  puis on <strong>valide</strong> avec <kbd>Entrée</kbd> ou un <strong>double-clic</strong>.
+  <kbd>Échap</kbd> annule le tracé en cours.</p>
+
+  <figure class="etroite">
+    <img src="images/11-barre-outils.png" alt="La boîte à outils">
+    <figcaption>Chaque outil a son raccourci clavier, indiqué à droite de son nom.</figcaption>
+  </figure>
+
+  <table>
+    <thead><tr><th>Outil</th><th>Touche</th><th>Ce qu'il mesure</th><th>Exemple d'usage</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Longueur</strong></td><td><kbd>1</kbd></td><td>Un développé, en m</td><td>Plinthes, corniches, tranchées</td></tr>
+      <tr><td><strong>Surface</strong></td><td><kbd>2</kbd></td><td>Une aire fermée, en m²</td><td>Sols, plafonds, cloisons</td></tr>
+      <tr><td><strong>Compteur</strong></td><td><kbd>3</kbd></td><td>Un nombre d'objets</td><td>Prises, spots, radiateurs</td></tr>
+      <tr><td><strong>Toiture</strong></td><td><kbd>4</kbd></td><td>Une aire corrigée par la pente</td><td>Versants de toit</td></tr>
+      <tr><td><strong>Soustraire</strong></td><td><kbd>5</kbd></td><td>Une aire <em>négative</em></td><td>Trémies, îlots, réservations</td></tr>
+      <tr><td><strong>Surface mur</strong></td><td><kbd>6</kbd></td><td>Périmètre × hauteur, en m²</td><td>Faïence, peinture, enduit</td></tr>
+    </tbody>
+  </table>
+
+  <h3>Votre première surface</h3>
+
+  <p>Outil <strong>Surface</strong>, puis un clic à chaque angle de la pièce et <kbd>Entrée</kbd>.
+  La surface se remplit de la couleur du poste et son étiquette s'affiche.</p>
+
+  <figure>
+    <img src="images/06-premiere-surface.png" alt="Première surface mesurée">
+    <figcaption>Le séjour : 20,00 m², rattaché au poste « Sol carrelage 60x60 ».</figcaption>
+  </figure>
+
+  <h3>Le métré prend forme</h3>
+
+  <p>En continuant — la cuisine dans le même poste, une déduction pour la trémie, le périmètre
+  en plinthes, la faïence de la salle de bain et deux prises comptées — on obtient un métré complet :</p>
+
+  <figure>
+    <img src="images/07-metre-complet.png" alt="Métré complet sur le plan d'exemple">
+    <figcaption>Chaque poste a sa couleur, sur le plan comme dans le panneau de droite.</figcaption>
+  </figure>
+
+  <div class="encart ok">
+    <span class="titre">Vérifiez vos totaux</span>
+    <p><strong>Sol carrelage</strong> : 20,00 + 17,50 − 1,44 = <strong>36,06 m²</strong> — la déduction
+    est bien retranchée.<br>
+    <strong>Plinthes</strong> : 5 + 4 + 5 + 4 = <strong>18,00 m</strong>.<br>
+    <strong>Faïence</strong> : (5,00 + 3,50) × 2,50 m de hauteur = <strong>21,25 m²</strong>.</p>
+  </div>
+
+  <div class="encart astuce">
+    <span class="titre">Surface mur : pensez à la hauteur</span>
+    <p>L'outil Surface mur multiplie le développé tracé par la hauteur saisie dans la boîte à outils.
+    Réglez cette hauteur <em>avant</em> de tracer. L'étiquette rappelle le calcul
+    (<code>périm.×2.5</code>) pour que le contrôle reste possible d'un coup d'œil.</p>
+  </div>
+
+  <!-- ─────────────────────────────────────────────────────────────── -->
+  <h2 id="verifier"><span class="num">6</span>Vérifier et corriger</h2>
+
+  <p>Le panneau de droite n'est pas qu'un total : c'est votre outil de contrôle.
+  Cliquez sur le <strong>chevron</strong> d'un poste pour dérouler le détail de ses mesures.</p>
+
+  <figure class="etroite">
+    <img src="images/08-detail-poste.png" alt="Détail des mesures d'un poste">
+    <figcaption>Le poste déroulé : chaque mesure, sa valeur, et son poste de rattachement.</figcaption>
+  </figure>
+
+  <p>Sur chaque ligne de mesure vous disposez de :</p>
+  <ul>
+    <li>un <strong>menu déroulant</strong> qui indique — et permet de changer — son poste ;</li>
+    <li>une <strong>icône œil</strong> pour la masquer sur le plan sans la supprimer ;</li>
+    <li>une <strong>corbeille</strong> pour la supprimer définitivement.</li>
+  </ul>
+
+  <p>Cliquer sur une mesure la sélectionne et vous amène sur sa page.</p>
+
+  <h3>Rattraper une mesure oubliée ou mal rangée</h3>
+
+  <p>Les mesures prises sans poste actif sont regroupées dans le bloc orange
+  <strong>« Non assignées »</strong> — impossible de les oublier au moment de chiffrer.</p>
+
+  <figure class="etroite">
+    <img src="images/09-non-assignees.png" alt="Bloc des mesures non assignées">
+    <figcaption>Deux prises comptées hors devis, signalées en orange.</figcaption>
+  </figure>
+
+  <p>Le menu déroulant couvre les trois situations :</p>
+  <table>
+    <thead><tr><th>Situation</th><th>Ce que vous faites</th></tr></thead>
+    <tbody>
+      <tr><td>Mesure sans poste</td><td>Choisir le poste voulu dans la liste</td></tr>
+      <tr><td>Mesure dans le mauvais poste</td><td>Choisir le bon poste — elle est déplacée</td></tr>
+      <tr><td>Mesure à sortir du devis</td><td>Choisir <em>« — Aucun poste — »</em></td></tr>
+    </tbody>
+  </table>
+
+  <div class="encart astuce">
+    <span class="titre">Le code couleur du menu</span>
+    <p><strong>Gris</strong> = la mesure est rattachée à un poste. <strong>Orange</strong> = elle ne l'est pas.
+    Un coup d'œil suffit pour repérer ce qui manque encore au devis.</p>
+  </div>
+
+  <!-- ─────────────────────────────────────────────────────────────── -->
+  <h2 id="etiquettes"><span class="num">7</span>Ajuster les étiquettes</h2>
+
+  <p>Sur un plan chargé, les étiquettes finissent par se chevaucher et masquer le dessin.
+  Deux gestes suffisent :</p>
+
+  <ul>
+    <li><strong>Déplacer</strong> — cliquez-glissez l'étiquette où vous voulez.
+    Sa position est enregistrée avec le projet.</li>
+    <li><strong>Masquer</strong> — sélectionnez la mesure, puis cliquez le petit
+    <strong>×</strong> rouge en haut de son étiquette. La mesure reste dans les totaux,
+    seule l'étiquette disparaît du plan.</li>
+  </ul>
+
+  <div class="encart ok">
+    <span class="titre">Les étiquettes ne grossissent plus au zoom</span>
+    <p>Étiquettes et points de tracé gardent la même taille à l'écran quel que soit le zoom.
+    Vous pouvez zoomer fortement pour cliquer un angle au pixel près sans que les repères
+    ne viennent recouvrir le plan.</p>
+  </div>
+
+  <!-- ─────────────────────────────────────────────────────────────── -->
+  <h2 id="legende"><span class="num">8</span>Poser la légende</h2>
+
+  <p>Le bouton <strong>Légende</strong> de la barre du haut affiche sur le plan un tableau
+  récapitulatif des postes et de leurs totaux. Il se déplace par glisser-déposer et
+  suit le plan dans les exports.</p>
+
+  <figure>
+    <img src="images/10-legende.png" alt="Légende posée sur le plan">
+    <figcaption>La légende reprend chaque poste, sa couleur et son total.</figcaption>
+  </figure>
+
+  <!-- ─────────────────────────────────────────────────────────────── -->
+  <h2 id="enregistrer"><span class="num">9</span>Enregistrer le projet</h2>
+
+  <p>Le bouton <strong>disquette</strong> (ou <kbd>Ctrl</kbd>+<kbd>S</kbd> /
+  <kbd>Cmd</kbd>+<kbd>S</kbd>) enregistre un fichier <code>.mplan</code>.</p>
+
+  <div class="encart ok">
+    <span class="titre">Tout est dans un seul fichier</span>
+    <p>Le <code>.mplan</code> contient <strong>le plan PDF lui-même</strong>, toutes vos mesures,
+    la calibration, les postes, les positions d'étiquettes et la légende. Vous pouvez l'archiver
+    ou l'envoyer à un collègue : à la réouverture, tout revient — <em>sans</em> avoir à retrouver
+    le PDF d'origine.</p>
+  </div>
+
+  <p>Pour rouvrir un projet, utilisez le bouton <strong>document</strong> situé juste à côté,
+  puis choisissez votre fichier <code>.mplan</code>.</p>
+
+  <div class="encart attention">
+    <span class="titre">Fichiers créés avant la mise à jour</span>
+    <p>Les <code>.mplan</code> enregistrés avec une version antérieure ne contiennent pas le plan
+    PDF. À leur ouverture, le métré est bien restauré, mais vous devrez rouvrir le PDF manuellement.
+    Réenregistrez-les ensuite : le plan y sera intégré.</p>
+  </div>
+
+  <!-- ─────────────────────────────────────────────────────────────── -->
+  <h2 id="exporter"><span class="num">10</span>Exporter le métré</h2>
+
+  <table>
+    <thead><tr><th>Bouton</th><th>Résultat</th><th>Pour quoi faire</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Excel</strong></td><td>Classeur <code>.xlsx</code></td><td>Chiffrer, appliquer vos prix unitaires</td></tr>
+      <tr><td><strong>PDF</strong></td><td>Rapport de métré</td><td>Joindre le détail des quantités au devis</td></tr>
+      <tr><td><strong>Plan</strong></td><td>Plan annoté</td><td>Montrer au client ce qui a été mesuré</td></tr>
+    </tbody>
+  </table>
+
+  <p>Le bouton <strong>Plan</strong> n'apparaît que lorsqu'un PDF est ouvert ; les deux autres
+  dès qu'une mesure existe.</p>
+
+  <!-- ─────────────────────────────────────────────────────────────── -->
+  <h2 id="raccourcis"><span class="num">11</span>Raccourcis clavier</h2>
+
+  <table>
+    <thead><tr><th>Touche</th><th>Action</th></tr></thead>
+    <tbody>
+      <tr><td><kbd>S</kbd></td><td>Outil Sélection</td></tr>
+      <tr><td><kbd>Espace</kbd> (maintenu)</td><td>Se déplacer sur le plan</td></tr>
+      <tr><td><kbd>C</kbd></td><td>Calibration</td></tr>
+      <tr><td><kbd>1</kbd> … <kbd>6</kbd></td><td>Longueur, Surface, Compteur, Toiture, Soustraire, Surface mur</td></tr>
+      <tr><td><kbd>Entrée</kbd> <em>ou</em> double-clic</td><td>Valider la mesure en cours</td></tr>
+      <tr><td><kbd>Échap</kbd></td><td>Annuler le tracé en cours</td></tr>
+      <tr><td><kbd>Suppr</kbd></td><td>Supprimer la mesure sélectionnée</td></tr>
+      <tr><td><kbd>Ctrl</kbd>+<kbd>Z</kbd> / <kbd>Ctrl</kbd>+<kbd>Y</kbd></td><td>Annuler / Refaire</td></tr>
+      <tr><td><kbd>Ctrl</kbd>+<kbd>O</kbd></td><td>Ouvrir un PDF</td></tr>
+      <tr><td><kbd>Ctrl</kbd>+<kbd>S</kbd></td><td>Enregistrer le projet</td></tr>
+    </tbody>
+  </table>
+
+  <p>Sur Mac, remplacez <kbd>Ctrl</kbd> par <kbd>Cmd</kbd>.</p>
+
+  <!-- ─────────────────────────────────────────────────────────────── -->
+  <h2 id="pieges"><span class="num">12</span>Pièges fréquents</h2>
+
+  <table>
+    <thead><tr><th>Symptôme</th><th>Cause</th><th>Solution</th></tr></thead>
+    <tbody>
+      <tr>
+        <td>« Calibrez d'abord l'échelle »</td>
+        <td>Aucune calibration sur ce projet</td>
+        <td>Tapez <kbd>C</kbd> et calibrez sur une cote connue</td>
+      </tr>
+      <tr>
+        <td>Une mesure n'apparaît dans aucun total</td>
+        <td>Elle a été prise sans poste actif</td>
+        <td>Bloc orange « Non assignées » → choisir un poste</td>
+      </tr>
+      <tr>
+        <td>Les boutons de rotation sont grisés</td>
+        <td>Le plan est calibré ou porte déjà des mesures</td>
+        <td>Normal : pivoter fausserait les mesures existantes</td>
+      </tr>
+      <tr>
+        <td>Le dernier point cliqué manque</td>
+        <td>Ancienne version de l'application</td>
+        <td>Mettre à jour : <kbd>Entrée</kbd> conserve désormais tous les points</td>
+      </tr>
+      <tr>
+        <td>Un total mélange des m et des m²</td>
+        <td>Deux types de mesures dans le même poste</td>
+        <td>Normal : les totaux sont affichés séparément par unité</td>
+      </tr>
+      <tr>
+        <td>Les étiquettes masquent le plan</td>
+        <td>Plusieurs mesures au même endroit</td>
+        <td>Déplacez-les par glisser-déposer, ou masquez-les avec le <strong>×</strong></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h3>Le bon réflexe, dans l'ordre</h3>
+  <ol class="etapes">
+    <li>Ouvrir le plan — et le pivoter si besoin, <em>maintenant</em>.</li>
+    <li>Calibrer sur la plus longue cote disponible.</li>
+    <li>Créer les postes du devis.</li>
+    <li>Activer un poste, puis mesurer ce qui le concerne.</li>
+    <li>Contrôler les totaux et le bloc « Non assignées ».</li>
+    <li>Enregistrer le <code>.mplan</code>, puis exporter.</li>
+  </ol>
+
+  <footer>
+    <p><strong>MétréPlan</strong> — Un manuel de référence plus détaillé est disponible dans
+    <a href="mode-emploi.html">mode-emploi.html</a>.</p>
+  </footer>
+
+</div>
+</body>
+</html>
