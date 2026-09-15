@@ -34,11 +34,13 @@ const MeasurementRow: React.FC<{
   measurement: Measurement
   isSelected: boolean
   showPage: boolean
-  assignablePostes?: Poste[]
+  /** Postes proposés dans le menu de (ré)assignation. */
+  assignablePostes: Poste[]
   onSelect: () => void
   onDelete: () => void
   onToggleVisibility: () => void
-  onAssign?: (posteId: string) => void
+  /** posteId vide = retirer la mesure de son poste. */
+  onAssign: (posteId: string | undefined) => void
 }> = ({ measurement: m, isSelected, showPage, assignablePostes, onSelect, onDelete, onToggleVisibility, onAssign }) => (
   <div
     className={clsx(
@@ -60,15 +62,20 @@ const MeasurementRow: React.FC<{
         {showPage && <span className="text-gray-600 ml-1">· p.{m.page}</span>}
       </p>
 
-      {assignablePostes && assignablePostes.length > 0 && onAssign && (
+      {assignablePostes.length > 0 && (
         <select
-          className="mt-1 w-full bg-gray-800 border border-gray-700 rounded px-1 py-0.5 text-xs text-gray-300 outline-none focus:border-blue-500"
-          value=""
+          className={clsx(
+            'mt-1 w-full rounded px-1 py-0.5 text-xs outline-none focus:border-blue-500 border',
+            m.posteId
+              ? 'bg-gray-800/60 border-gray-700/70 text-gray-400'
+              : 'bg-amber-900/30 border-amber-700/60 text-amber-300'
+          )}
+          value={m.posteId ?? ''}
           onClick={e => e.stopPropagation()}
-          onChange={e => { if (e.target.value) onAssign(e.target.value) }}
-          title="Assigner cette mesure à un poste"
+          onChange={e => onAssign(e.target.value || undefined)}
+          title="Changer le poste de cette mesure"
         >
-          <option value="">Assigner à un poste…</option>
+          <option value="">— Aucun poste —</option>
           {assignablePostes.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
         </select>
       )}
@@ -99,7 +106,7 @@ const PosteBlock: React.FC<{
   onRename: (name: string) => void
   onDelete: () => void
 }> = ({ poste, items, isActive, showPage, onToggleActive, onRename, onDelete }) => {
-  const { selectedMeasurementId, selectMeasurement, deleteMeasurement, toggleMeasurementVisibility } = useProjectStore()
+  const { postes, selectedMeasurementId, selectMeasurement, deleteMeasurement, toggleMeasurementVisibility, updateMeasurement } = useProjectStore()
   const { setCurrentPage } = usePdfStore()
   const [expanded, setExpanded] = useState(false)
   const [editing, setEditing] = useState(false)
@@ -207,9 +214,11 @@ const PosteBlock: React.FC<{
               measurement={m}
               isSelected={m.id === selectedMeasurementId}
               showPage={showPage}
+              assignablePostes={postes}
               onSelect={() => handleSelect(m)}
               onDelete={() => deleteMeasurement(m.id)}
               onToggleVisibility={() => toggleMeasurementVisibility(m.id)}
+              onAssign={posteId => updateMeasurement(m.id, { posteId })}
             />
           ))}
         </div>
