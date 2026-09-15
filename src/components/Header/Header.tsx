@@ -31,6 +31,11 @@ const Header: React.FC = () => {
   const buildProject = () => ({ ...getProject(), pdfFileName })
 
   const handleSave = async () => {
+    // Garde-fou : ne jamais produire un .mplan avec un PDF vide (cf. détachement du buffer)
+    if (pdfDocument && (!pdfBytes || pdfBytes.byteLength === 0)) {
+      alert("Le PDF n'a pas pu être intégré au fichier projet.\nRechargez le plan puis réessayez.")
+      return
+    }
     await saveProject(buildProject(), pdfBytes, pdfFileName || null)
   }
 
@@ -39,9 +44,11 @@ const Header: React.FC = () => {
     if (!result) return
     useProjectStore.getState().loadProject(result.project)
     if (result.pdfBytes) {
+      // Copie conservée avant que getDocument() ne détache le buffer,
+      // afin qu'un ré-enregistrement conserve bien le PDF.
+      setPdfBytes(result.pdfBytes.slice())
       const doc = await pdfjs.getDocument({ data: result.pdfBytes }).promise
       setPdfDocument(doc, result.pdfFileName ?? 'document.pdf')
-      setPdfBytes(result.pdfBytes)
     }
   }
 

@@ -9,19 +9,49 @@ export interface LoadResult {
   pdfFileName: string | null
 }
 
+/** Nettoie un nom de projet pour en faire un nom de fichier valide (accents et espaces conservés). */
+function toFileName(name: string): string {
+  const cleaned = name.replace(/[\\/:*?"<>|]/g, '_').trim()
+  return `${cleaned || 'projet'}.mplan`
+}
+
 export async function saveProject(project: Project, pdfBytes: Uint8Array | null, pdfFileName: string | null): Promise<void> {
   const zip = new JSZip()
   zip.file('project.json', JSON.stringify({ version: MPLAN_VERSION, ...project }, null, 2))
-  if (pdfBytes && pdfFileName) {
+  // byteLength > 0 : un buffer détaché par pdf.js ne doit jamais être écrit tel quel
+  if (pdfBytes && pdfBytes.byteLength > 0 && pdfFileName) {
     zip.file('document.pdf', pdfBytes)
   }
   const blob = await zip.generateAsync({ type: 'blob', compression: 'DEFLATE', compressionOptions: { level: 6 } })
+  const suggestedName = toFileName(project.name)
+
+  // Boîte de dialogue « Enregistrer sous » native (Electron, Chrome, Edge) :
+  // l'utilisateur choisit où ranger son projet et le retrouve ensuite.
+  const showSaveFilePicker = (window as any).showSaveFilePicker
+  if (typeof showSaveFilePicker === 'function') {
+    try {
+      const handle = await showSaveFilePicker({
+        suggestedName,
+        types: [{ description: 'Projet MétréPlan', accept: { 'application/x-mplan': ['.mplan'] } }],
+      })
+      const writable = await handle.createWritable()
+      await writable.write(blob)
+      await writable.close()
+      return
+    } catch (err: any) {
+      if (err?.name === 'AbortError') return // annulé par l'utilisateur
+      console.warn('Dialogue natif indisponible, repli sur le téléchargement :', err)
+    }
+  }
+
+  // Repli navigateur : téléchargement classique
   const url = URL.createObjectURL(blob)
   const a = document.createElement('a')
   a.href = url
-  a.download = `${project.name.replace(/[^a-zA-Z0-9_-]/g, '_')}.mplan`
+  a.download = suggestedName
   a.click()
-  URL.revokeObjectURL(url)
+  // Révoquer trop tôt peut annuler le téléchargement sur certains navigateurs
+  setTimeout(() => URL.revokeObjectURL(url), 10_000)
 }
 
 export async function loadProject(): Promise<LoadResult | null> {

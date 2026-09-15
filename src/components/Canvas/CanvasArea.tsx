@@ -341,9 +341,12 @@ const CanvasArea: React.FC = () => {
       await ensurePdfWorkerConfigured()
       const buf = await file.arrayBuffer()
       const bytes = new Uint8Array(buf)
+      // ATTENTION : pdfjs.getDocument() TRANSFÈRE le buffer au worker, ce qui le
+      // détache côté principal (byteLength retombe à 0). On garde donc une copie
+      // indépendante AVANT l'appel — sans quoi le .mplan embarque un PDF vide.
+      setPdfBytes(bytes.slice())
       const doc = await pdfjs.getDocument({ data: bytes }).promise
       setPdfDocument(doc, file.name)
-      setPdfBytes(bytes)
       setCurrentPoints([]); setCalibPoints([])
       setZoom(1)
       const stage = stageRef.current
