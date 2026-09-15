@@ -17,6 +17,11 @@ export default defineConfig({
           dest: '',
           rename: 'pdf.worker.min.mjs',
         },
+        // Aide en ligne : rend le tutoriel et le manuel joignables depuis la
+        // version web (NAS), où l'on n'a pas le menu « Aide » de l'application
+        // installée. → http://<serveur>/docs/tutoriel.html
+        { src: 'docs/*.html', dest: 'docs' },
+        { src: 'docs/images', dest: 'docs' },
       ],
     }),
   ],
