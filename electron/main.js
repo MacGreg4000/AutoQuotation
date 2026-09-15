@@ -77,8 +77,16 @@ function createWindow() {
     win.loadFile(join(__dirname, '../dist/index.html'))
   }
 
-  // Ouvrir les liens externes (http/https) dans le navigateur système
   win.webContents.setWindowOpenHandler(({ url }) => {
+    // Le bouton « ? » demande docs/tutoriel.html. En production ce chemin pointe
+    // dans l'archive asar, que le système ne sait pas lire : on redirige vers la
+    // copie déposée dans les ressources de l'application.
+    const doc = url.match(/\/docs\/([\w.-]+\.(?:html|pdf))$/)
+    if (doc) {
+      ouvrirDoc(doc[1])
+      return { action: 'deny' }
+    }
+    // Ouvrir les liens externes (http/https) dans le navigateur système
     if (url.startsWith('http')) shell.openExternal(url)
     return { action: 'deny' }
   })

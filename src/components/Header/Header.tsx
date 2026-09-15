@@ -4,7 +4,7 @@ import { useProjectStore } from '@/store/useProjectStore'
 import {
   ZoomIn, ZoomOut, Maximize2, ChevronLeft, ChevronRight,
   FolderOpen, Save, Download, FileText, RotateCcw, RotateCw,
-  Ruler, Layers, TableProperties
+  Ruler, Layers, TableProperties, CircleHelp
 } from 'lucide-react'
 import clsx from 'clsx'
 import { exportExcel } from '@/lib/exportExcel'
@@ -23,6 +23,11 @@ const Header: React.FC = () => {
     const next = ((currentRotation + delta) % 360 + 360) % 360
     setPageRotation(currentPage, next)
   }
+
+  // Le tutoriel est livré à côté de l'application : dans dist/docs pour la
+  // version web, et intercepté par le processus principal sous Electron, qui
+  // ouvre la copie hors archive asar (seule réellement lisible par le système).
+  const handleAide = () => window.open('docs/tutoriel.html', '_blank')
 
   const handleZoomIn = () => window.dispatchEvent(new Event('zoom-in'))
   const handleZoomOut = () => window.dispatchEvent(new Event('zoom-out'))
@@ -248,6 +253,12 @@ const Header: React.FC = () => {
           </div>
         </>
       )}
+
+      {/* Aide — toujours accessible */}
+      <div className="h-6 w-px bg-gray-700" />
+      <HeaderBtn onClick={handleAide} title="Ouvrir le tutoriel pas à pas">
+        <CircleHelp size={16} />
+      </HeaderBtn>
     </header>
   )
 }
