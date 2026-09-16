@@ -61,6 +61,7 @@ const CanvasArea: React.FC = () => {
   const currentPointsRef = useRef<Point[]>([])
   const zoomRef = useRef(1)
   const pdfDimsRef = useRef({ width: 0, height: 0 })
+  const cadrerApresRenduRef = useRef(false)
 
   const { pdfDocument, currentPage, zoom, setZoom, setPdfDocument, setPdfBytes } = usePdfStore()
   const { activeTool, setActiveTool } = useToolStore()
@@ -95,6 +96,13 @@ const CanvasArea: React.FC = () => {
     setPdfDims({ width: w, height: h })
     const stage = stageRef.current
     if (!stage) return
+    if (cadrerApresRenduRef.current) {
+      cadrerApresRenduRef.current = false
+      // Le gestionnaire lit pdfDimsRef, que l'état n'a pas encore rafraîchi.
+      pdfDimsRef.current = { width: w, height: h }
+      window.dispatchEvent(new Event('zoom-fit'))
+      return
+    }
     // Always sync the scale to the current zoom
     stage.scale({ x: zoom, y: zoom })
     // Only recenter on new PDF / page change, not on every zoom
@@ -253,11 +261,17 @@ const CanvasArea: React.FC = () => {
       const stage = stageRef.current; const container = containerRef.current
       if (!stage || !container || !pdfDimsRef.current.width) return
       const pad = 40
-      const sx = (container.clientWidth - pad * 2) / pdfDimsRef.current.width
-      const sy = (container.clientHeight - pad * 2) / pdfDimsRef.current.height
+      // pdfDims contient la page telle que rendue, donc déjà multipliée par le zoom.
+      // On revient à sa taille intrinsèque, sans quoi un second « Ajuster » ramène
+      // le zoom vers 100 % au lieu de conserver le cadrage.
+      const z = zoomRef.current || 1
+      const largeurPage = pdfDimsRef.current.width / z
+      const hauteurPage = pdfDimsRef.current.height / z
+      const sx = (container.clientWidth - pad * 2) / largeurPage
+      const sy = (container.clientHeight - pad * 2) / hauteurPage
       const newZ = Math.min(sx, sy, 5)
-      const x = (container.clientWidth - pdfDimsRef.current.width * newZ) / 2
-      const y = (container.clientHeight - pdfDimsRef.current.height * newZ) / 2
+      const x = (container.clientWidth - largeurPage * newZ) / 2
+      const y = (container.clientHeight - hauteurPage * newZ) / 2
       const np = { x: Math.max(0, x), y: Math.max(0, y) }
       setZoom(newZ); setStagePos(np); stage.scale({ x: newZ, y: newZ }); stage.position(np); stage.batchDraw()
     }
@@ -361,12 +375,13 @@ const CanvasArea: React.FC = () => {
         setConversionCao(file.name)
         try {
           const { pdfBytes, calibration, avertissements } = await convertirEnPdf(file)
+          // La taille de page issue d'un CAO est arbitraire : on cadre le dessin
+          // entier. Les dimensions n'étant connues qu'au rendu, on arme le drapeau
+          // AVANT l'affichage : après, le rendu a déjà eu lieu et le cadrage est manqué.
+          cadrerApresRenduRef.current = true
           await afficherPdf(pdfBytes, file.name)
           // Le dessin porte ses unités réelles : plus besoin de calibrer à la main.
           if (calibration) useProjectStore.getState().setCalibration(calibration)
-          // La taille de page issue d'un CAO est arbitraire : on cadre le dessin
-          // entier plutôt que d'ouvrir à 100 % sur un coin.
-          setTimeout(() => window.dispatchEvent(new Event('zoom-fit')), 100)
           if (avertissements.length) alert(avertissements.join('\n\n'))
         } finally {
           setConversionCao(null)

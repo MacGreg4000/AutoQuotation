@@ -12,7 +12,7 @@
     "build:mac": "npm run build && electron-builder --mac",
     "build:win": "npm run build && electron-builder --win",
     "build:linux": "npm run build && electron-builder --linux",
-    "docs:plan": "node scripts/generer-plan-exemple.mjs",
+    "docs:plan": "node scripts/generer-plan-exemple.mjs && node scripts/generer-plan-dxf.mjs",
     "docs:captures": "electron scripts/capturer-tutoriel.mjs",
     "test:paquet": "npm run build && electron scripts/test-paquet.mjs"
   },

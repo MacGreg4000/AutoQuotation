@@ -170,6 +170,25 @@ const etapes = [
   { nom: '11-barre-outils', attente: 300, zone: 'outils' },
 
   { nom: '12-entete', attente: 300, zone: 'entete' },
+
+  // Import CAO : on repart d'un projet vierge, le plan DXF remplaçant le PDF.
+  {
+    nom: '13-import-cao',
+    code: PRELUDE + `
+      P().newProject();
+      const res = await fetch('/exemple-plan.dxf');
+      const file = new File([await res.blob()], 'exemple-plan.dxf', { type: 'application/octet-stream' });
+      const dt = new DataTransfer(); dt.items.add(file);
+      const input = document.getElementById('pdf-file-input');
+      const vrai = window.alert; window.alert = () => {};
+      input.files = dt.files;
+      input.dispatchEvent(new Event('change', { bubbles: true }));
+      await new Promise(r => setTimeout(r, 6000));
+      window.alert = vrai;
+      // l'application cadre déjà le plan elle-même : ne pas le refaire ici
+    `,
+    attente: 2000,
+  },
 ]
 
 app.whenReady().then(async () => {
